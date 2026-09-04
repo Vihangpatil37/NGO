@@ -64,12 +64,14 @@ For developers on Windows machines, a streamlined bootstrapping script is provid
 1. Clone the repository and ensure your `.env` files are configured (see [Environment Variables](#-environment-variables)).
 2. From the project root, execute:
    ```cmd
-   .\start_all.bat
+   .\start.bat
    ```
-This batch script will automatically spawn three dedicated terminals and bind to:
-- **API**: `http://localhost:4000`
-- **Patient UI**: `http://localhost:3000`
-- **Admin UI**: `http://localhost:3001`
+   *(Note: `.\start_all.bat` is also available and functions identically.)*
+
+This batch script will automatically spawn three dedicated terminals:
+- **API**: `http://localhost:4000` (Node.js)
+- **Patient UI**: Deployed to your connected USB device (Flutter)
+- **Admin UI**: `http://localhost:3001` (Next.js)
 
 ---
 
@@ -84,11 +86,10 @@ npm install
 npm start
 ```
 
-### 2. Initialize Patient Frontend
+### 2. Initialize Patient Frontend (Flutter)
 ```bash
-cd hospital-patient-app
-npm install
-npm run dev
+cd hospital_patient_app
+flutter run
 ```
 
 ### 3. Initialize Admin Frontend

@@ -75,9 +75,9 @@ export class PatientController {
         sessionToken,
         patient: toPatientDTO(patient)
       }, 'Token issued successfully.', 201);
-    } catch (error) {
+    } catch (error: any) {
       logger.error({ err: error }, 'registerNewCase error');
-      sendError(res, 'Unable to register patient. Please check your network and try again.', 'REGISTRATION_FAILED', 500);
+      sendError(res, `Unable to register patient. Error: ${error.message}`, 'REGISTRATION_FAILED', 500);
     }
   }
 

@@ -3,9 +3,38 @@ import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/language_selector_sheet.dart';
 import '../../core/navigation/app_router.dart';
 import 'package:hospital_patient_app/l10n/app_localizations.dart';
+import '../../core/storage/session_storage.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  bool _hasActiveToken = false;
+  String? _activeTokenId;
+  int? _activeTokenNumber;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkActiveSession();
+  }
+
+  Future<void> _checkActiveSession() async {
+    final storage = await SessionStorage.getInstance();
+    if (mounted) {
+      setState(() {
+        _hasActiveToken = storage.hasActiveSession();
+        _activeTokenId = storage.getActiveTokenId();
+        _activeTokenNumber = storage.getTokenNumber();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +96,25 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 36),
+
+                    if (!_isLoading && _hasActiveToken) ...[
+                      // Active Token Card
+                      _SelectionCard(
+                        iconEmoji: '🎟',
+                        title: AppLocalizations.of(context)!.myToken, // Using 'My Token' as title
+                        subtitle: 'Token #${_activeTokenNumber?.toString().padLeft(2, '0') ?? '--'}\nTap to view live status',
+                        color: AppColors.yourTurn, // Or another prominent color
+                        isProminent: true,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRouter.myToken,
+                            arguments: {'tokenId': _activeTokenId},
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                    ],
 
                     // Option 1: New Case Card
                     _SelectionCard(
@@ -140,6 +188,7 @@ class _SelectionCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final Color color;
+  final bool isProminent;
   final VoidCallback onTap;
 
   const _SelectionCard({
@@ -147,6 +196,7 @@ class _SelectionCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.color,
+    this.isProminent = false,
     required this.onTap,
   });
 
@@ -159,12 +209,12 @@ class _SelectionCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isProminent ? color.withAlpha(15) : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withAlpha(76), width: 2.0),
+          border: Border.all(color: color.withAlpha(76), width: isProminent ? 3.0 : 2.0),
           boxShadow: [
             BoxShadow(
-              color: color.withAlpha(15),
+              color: color.withAlpha(isProminent ? 25 : 15),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),

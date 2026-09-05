@@ -55,7 +55,19 @@ class _MyTokenScreenState extends State<MyTokenScreen> {
 
           return Scaffold(
             backgroundColor: AppColors.background,
-            appBar: AppBar(title: Text(AppLocalizations.of(context)!.myToken)),
+            appBar: AppBar(
+              title: Text(AppLocalizations.of(context)!.myToken),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.welcome, (route) => false);
+                  } else {
+                    Navigator.of(context).pushReplacementNamed(AppRouter.welcome);
+                  }
+                },
+              ),
+            ),
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -92,7 +104,16 @@ class _MyTokenScreenState extends State<MyTokenScreen> {
           backgroundColor: AppColors.background,
           appBar: AppBar(
             title: Text(AppLocalizations.of(context)!.myToken),
-            automaticallyImplyLeading: false, // Don't show back arrow
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.welcome, (route) => false);
+                } else {
+                  Navigator.of(context).pushReplacementNamed(AppRouter.welcome);
+                }
+              },
+            ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.help_outline, color: AppColors.textSecondary),

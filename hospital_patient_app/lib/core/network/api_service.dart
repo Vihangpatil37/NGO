@@ -124,6 +124,14 @@ class ApiService {
   String _parseError(DioException e) {
     if (e.response != null && e.response?.data != null) {
       final data = e.response!.data;
+      
+      if (e.response?.statusCode == 409 && data is Map && data['existing_token_id'] != null) {
+        throw DuplicateTokenException(
+          data['message'] ?? data['error']?.toString() ?? 'You already have an active token.',
+          data['existing_token_id'],
+        );
+      }
+
       if (data is Map && data['error'] != null) {
         if (data['error'] is Map && data['error']['message'] != null) {
           return data['error']['message'];
@@ -143,4 +151,14 @@ class ApiService {
     }
     return 'An unexpected error occurred. Please try again.';
   }
+}
+
+class DuplicateTokenException implements Exception {
+  final String message;
+  final String tokenId;
+  
+  DuplicateTokenException(this.message, this.tokenId);
+  
+  @override
+  String toString() => message;
 }

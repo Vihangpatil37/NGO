@@ -86,12 +86,41 @@ class _NewCaseScreenState extends State<NewCaseScreen> {
           'patientName': patientName,
         },
       );
+    } on DuplicateTokenException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      _showDuplicateTokenDialog(context, e.tokenId, e.message);
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
       });
     }
+  }
+
+  void _showDuplicateTokenDialog(BuildContext context, String tokenId, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Notice'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).pushReplacementNamed(
+                AppRouter.myToken,
+                arguments: {'tokenId': tokenId},
+              );
+            },
+            child: Text(AppLocalizations.of(context)!.viewMyToken),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -102,7 +131,13 @@ class _NewCaseScreenState extends State<NewCaseScreen> {
         title: Text(AppLocalizations.of(context)!.newCase),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.welcome, (route) => false);
+            } else {
+              Navigator.of(context).pushReplacementNamed(AppRouter.welcome);
+            }
+          },
         ),
       ),
       body: SafeArea(

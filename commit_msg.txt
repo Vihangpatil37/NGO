@@ -1,0 +1,12 @@
+chore: migrate hospital-api-server to TypeScript, add unified gitignore
+
+This commit starts the process of upgrading our backend code from plain 
+JavaScript to TypeScript. This helps us catch errors early and write safer, 
+more reliable code. It also sets up a unified gitignore for the monorepo.
+
+What changed:
+- Setup TypeScript: Added `tsconfig.json` and required packages to `package.json`.
+- Restructured Code: Organized our `src/` folder by adding `config`, `infrastructure`, `models`, and `types` folders to keep code tidy.
+- Converted Files: Rewrote basic utilities and middleware (like error handling and logging) from JavaScript (`.js`) to TypeScript (`.ts`).
+- Unified Gitignore: Combined individual .gitignore files from sub-projects into one at the root directory.
+- Clean Up: Deleted outdated files that we no longer need (e.g., `migrate.js` and old `.js` versions of converted files).

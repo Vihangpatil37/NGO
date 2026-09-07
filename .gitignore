@@ -1,0 +1,68 @@
+# ==========================================
+# General OS / IDE
+# ==========================================
+.DS_Store
+*.pem
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+*.log
+*.class
+*.pyc
+*.swp
+.history/
+.svn/
+
+# ==========================================
+# Node.js & Next.js (Admin App & API Server)
+# ==========================================
+node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+coverage/
+hospital-admin-app/.next/
+hospital-admin-app/out/
+hospital-admin-app/build/
+hospital-api-server/dist/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+.env
+.env.*
+.vercel/
+
+*.tsbuildinfo
+hospital-admin-app/next-env.d.ts
+
+# ==========================================
+# Flutter (Patient App)
+# ==========================================
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+.swiftpm/
+hospital_patient_app/build/
+hospital_patient_app/coverage/
+hospital_patient_app/android/app/debug/
+hospital_patient_app/android/app/profile/
+hospital_patient_app/android/app/release/
+.widget_preview/
+
+# Flutter/Dart doc and ID
+**/doc/api/
+**/ios/Flutter/.last_build_id
+app.*.symbols
+app.*.map.json
+migrate_working_dir/

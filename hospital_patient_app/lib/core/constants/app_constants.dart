@@ -18,4 +18,14 @@ class AppConstants {
   static const String keyCaseNumber = 'case_number';
   static const String keyPatientName = 'patient_name';
   static const String keyLanguageCode = 'app_language_code';
+
+  // Doctor session keys
+  static const String keyDoctorSessionToken = 'doctor_session_token';
+  static const String keyDoctorPhone = 'doctor_phone';
+  static const String keyDoctorObjectId = 'doctor_object_id';
+  static const String keyDoctorName = 'doctor_name';
+  static const String keyDoctorSpecialization = 'doctor_specialization';
+
+  // Doctor API
+  static const String doctorApiBasePath = '/api/doctors';
 }

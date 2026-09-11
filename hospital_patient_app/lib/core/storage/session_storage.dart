@@ -54,4 +54,41 @@ class SessionStorage {
   Future<void> setLanguageCode(String code) async {
     await _prefs?.setString(AppConstants.keyLanguageCode, code);
   }
+
+  // --- Doctor Session (isolated from patient session) ---
+
+  Future<void> saveDoctorSession({
+    required String token,
+    required String doctorPhone,
+    required String doctorObjectId,
+    required String doctorName,
+    String? specialization,
+  }) async {
+    await _prefs?.setString(AppConstants.keyDoctorSessionToken, token);
+    await _prefs?.setString(AppConstants.keyDoctorPhone, doctorPhone);
+    await _prefs?.setString(AppConstants.keyDoctorObjectId, doctorObjectId);
+    await _prefs?.setString(AppConstants.keyDoctorName, doctorName);
+    if (specialization != null) {
+      await _prefs?.setString(AppConstants.keyDoctorSpecialization, specialization);
+    }
+  }
+
+  String? getDoctorSessionToken() => _prefs?.getString(AppConstants.keyDoctorSessionToken);
+  String? getDoctorPhone() => _prefs?.getString(AppConstants.keyDoctorPhone);
+  String? getDoctorObjectId() => _prefs?.getString(AppConstants.keyDoctorObjectId);
+  String? getDoctorName() => _prefs?.getString(AppConstants.keyDoctorName);
+  String? getDoctorSpecialization() => _prefs?.getString(AppConstants.keyDoctorSpecialization);
+
+  bool hasDoctorSession() {
+    final token = getDoctorSessionToken();
+    return token != null && token.isNotEmpty;
+  }
+
+  Future<void> clearDoctorSession() async {
+    await _prefs?.remove(AppConstants.keyDoctorSessionToken);
+    await _prefs?.remove(AppConstants.keyDoctorPhone);
+    await _prefs?.remove(AppConstants.keyDoctorObjectId);
+    await _prefs?.remove(AppConstants.keyDoctorName);
+    await _prefs?.remove(AppConstants.keyDoctorSpecialization);
+  }
 }

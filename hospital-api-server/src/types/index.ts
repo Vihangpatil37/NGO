@@ -53,3 +53,13 @@ export interface ApiResponse<T = any> {
     message: string;
   };
 }
+
+// Doctor types
+export type AvailabilityStatus = 'coming' | 'not_coming';
+
+export interface IDoctorPayload {
+  doctorObjectId: string;
+  doctorId: string;
+  role: 'doctor';
+}
+

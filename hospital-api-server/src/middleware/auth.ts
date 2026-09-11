@@ -53,3 +53,38 @@ export const patientAuth = (req: Request | any, res: Response, next: NextFunctio
     });
   }
 };
+
+export const doctorAuth = (req: Request | any, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.split(' ')[1]
+    : authHeader;
+
+  if (!token) {
+    res.status(401).json({
+      success: false,
+      error: { code: 'UNAUTHORIZED', message: 'No doctor authorization token provided' }
+    });
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, env.DOCTOR_JWT_SECRET) as any;
+
+    if (decoded.role !== 'doctor') {
+      res.status(403).json({
+        success: false,
+        error: { code: 'FORBIDDEN', message: 'Invalid token role' }
+      });
+      return;
+    }
+
+    req.doctor = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({
+      success: false,
+      error: { code: 'INVALID_TOKEN', message: 'Invalid or expired doctor token' }
+    });
+  }
+};

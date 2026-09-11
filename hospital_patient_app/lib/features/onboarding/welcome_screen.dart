@@ -53,15 +53,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.language, color: AppColors.primary, size: 26),
-            tooltip: AppLocalizations.of(context)!.chooseLanguage,
-            onPressed: () => LanguageSelectorSheet.show(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.help_outline, color: AppColors.textSecondary, size: 26),
-            tooltip: AppLocalizations.of(context)!.help,
+            icon: const Icon(
+              Icons.medical_services_outlined,
+              color: AppColors.primary,
+              size: 26,
+            ),
+            tooltip: 'Doctor Login',
             onPressed: () {
-              Navigator.pushNamed(context, AppRouter.help);
+              Navigator.pushNamed(context, AppRouter.doctorLogin);
             },
           ),
         ],

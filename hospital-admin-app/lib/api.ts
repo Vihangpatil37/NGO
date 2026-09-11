@@ -97,3 +97,49 @@ export async function registerPatientAgain(id: string) {
     if (!res.ok) throw new Error('Failed to re-register patient');
     return res.json();
 }
+
+export async function getDoctors() {
+    const res = await fetch(`${API_URL}/api/admin/doctors`, {
+        headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to fetch doctors');
+    return res.json();
+}
+
+export async function addDoctor(doctorData: any) {
+    const res = await fetch(`${API_URL}/api/admin/doctors`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(doctorData)
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'Failed to add doctor');
+    }
+    return res.json();
+}
+
+export async function updateDoctor(id: string, updates: any) {
+    const res = await fetch(`${API_URL}/api/admin/doctors/${id}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(updates)
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'Failed to update doctor');
+    }
+    return res.json();
+}
+
+export async function deleteDoctor(id: string) {
+    const res = await fetch(`${API_URL}/api/admin/doctors/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'Failed to delete doctor');
+    }
+    return res.json();
+}

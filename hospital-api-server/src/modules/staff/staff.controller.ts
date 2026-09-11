@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import Patient from '../../models/Patient';
-import Registration from '../../models/Registration';
-import QueueToken from '../../models/QueueToken';
+import { QueueToken } from '../../models/QueueToken';
+import { Registration } from '../../models/Registration';
+import { Patient } from '../../models/Patient';
+import Doctor from '../../models/Doctor';
+import { DoctorService } from '../doctors/doctor.service';
 import env from '../../config/env';
 import { getRegistrationWindowId } from '../../middleware/validateRegistrationWindow';
 import { logger } from '../../utils/logger';
@@ -341,6 +344,128 @@ export class StaffController {
       res.status(201).json({ message: 'Re-registration successful', registration: result.registration, token: result.token });
     } catch (error) {
       logger.error({ err: error }, 'registerAgain error');
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  // --- Doctor Management ---
+
+  public static async getDoctorsWithAvailability(req: Request, res: Response): Promise<void> {
+    try {
+      const windowId = getRegistrationWindowId();
+      const doctors = await Doctor.aggregate([
+        {
+          $lookup: {
+            from: 'doctoravailabilities',
+            let: { docId: '$_id' },
+            pipeline: [
+              { $match: { $expr: { $and: [
+                { $eq: ['$doctorId', '$$docId'] },
+                { $eq: ['$registrationWindowId', windowId] }
+              ]}}}
+            ],
+            as: 'availability'
+          }
+        },
+        {
+          $project: {
+            pinHash: 0 // Ensure we don't leak the pinHash
+          }
+        }
+      ]);
+      res.status(200).json({ success: true, data: doctors });
+    } catch (error) {
+      logger.error({ err: error }, 'getDoctors error');
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  public static async addDoctor(req: Request, res: Response): Promise<void> {
+    try {
+      const { name, specialization, phoneNumber, pin } = req.body;
+      
+      const existing = await Doctor.findOne({ phoneNumber });
+      if (existing) {
+        res.status(409).json({ success: false, error: { message: 'A doctor with this phone number already exists' } });
+        return;
+      }
+
+      const pinHash = await DoctorService.hashPassword(pin);
+      
+      const doctor = await Doctor.create({
+        name,
+        specialization,
+        phoneNumber,
+        pinHash,
+        isActive: true
+      });
+
+      const doctorJson = doctor.toJSON();
+
+      res.status(201).json({ success: true, data: doctorJson });
+    } catch (error) {
+      logger.error({ err: error }, 'addDoctor error');
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  public static async updateDoctor(req: Request, res: Response): Promise<void> {
+    try {
+      const id = unwrapParam(req.params.id);
+      const { name, specialization, phoneNumber, pin } = req.body;
+
+      const doctor = await Doctor.findById(id);
+      if (!doctor) {
+        res.status(404).json({ success: false, error: { message: 'Doctor not found' } });
+        return;
+      }
+
+      if (phoneNumber && phoneNumber !== doctor.phoneNumber) {
+        const existing = await Doctor.findOne({ phoneNumber });
+        if (existing) {
+          res.status(409).json({ success: false, error: { message: 'Phone number already in use by another doctor' } });
+          return;
+        }
+        doctor.phoneNumber = phoneNumber;
+      }
+
+      if (name !== undefined) doctor.name = name;
+      if (specialization !== undefined) doctor.specialization = specialization;
+
+      if (pin) {
+        doctor.pinHash = await DoctorService.hashPassword(pin);
+      }
+
+      await doctor.save();
+
+      const updated = await Doctor.findById(id);
+      res.status(200).json({ success: true, data: updated });
+    } catch (error) {
+      logger.error({ err: error }, 'updateDoctor error');
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  public static async deleteDoctor(req: Request, res: Response): Promise<void> {
+    try {
+      const id = unwrapParam(req.params.id);
+      
+      const doctor = await Doctor.findById(id);
+      if (!doctor) {
+        res.status(404).json({ success: false, error: { message: 'Doctor not found' } });
+        return;
+      }
+
+      // Hard delete the doctor
+      await Doctor.findByIdAndDelete(id);
+      
+      // Also delete any associated availability records to keep DB clean
+      const DoctorAvailability = mongoose.model('DoctorAvailability');
+      await DoctorAvailability.deleteMany({ doctorId: doctor._id });
+
+      res.status(200).json({ success: true, message: 'Doctor deleted successfully' });
+    } catch (error) {
+      logger.error({ err: error }, 'deleteDoctor error');
       res.status(500).json({ error: 'Internal server error' });
     }
   }

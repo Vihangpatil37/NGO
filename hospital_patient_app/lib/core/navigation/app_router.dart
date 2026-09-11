@@ -5,6 +5,8 @@ import '../../features/old_case/old_case_screen.dart';
 import '../../features/token/token_confirmed_screen.dart';
 import '../../features/token/my_token_screen.dart';
 import '../../features/help/help_screen.dart';
+import '../../features/doctor/doctor_login_screen.dart';
+import '../../features/doctor/doctor_availability_screen.dart';
 
 class AppRouter {
   static const String welcome = '/';
@@ -13,6 +15,8 @@ class AppRouter {
   static const String tokenConfirmed = '/token-confirmed';
   static const String myToken = '/my-token';
   static const String help = '/help';
+  static const String doctorLogin = '/doctor-login';
+  static const String doctorAvailability = '/doctor-availability';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -45,6 +49,10 @@ class AppRouter {
         );
       case help:
         return MaterialPageRoute(builder: (_) => const HelpScreen());
+      case doctorLogin:
+        return MaterialPageRoute(builder: (_) => const DoctorLoginScreen());
+      case doctorAvailability:
+        return MaterialPageRoute(builder: (_) => const DoctorAvailabilityScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/server.js",
-    "dev": "node dist/server.js",
+    "dev": "nodemon src/server.ts",
     "build": "tsc",
+    "seed:doctors": "npx ts-node scripts/seed-doctors.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,6 +15,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
@@ -28,11 +30,13 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/luxon": "^3.7.5",
     "@types/node": "^26.4.1",
     "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
     "typescript": "^7.0.2"
   }
 }

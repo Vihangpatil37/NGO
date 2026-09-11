@@ -6,23 +6,33 @@ import 'core/theme/app_theme.dart';
 import 'core/navigation/app_router.dart';
 import 'features/token/token_provider.dart';
 import 'core/localization/locale_provider.dart';
+import 'features/doctor/doctor_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final storage = await SessionStorage.getInstance();
   final hasSession = storage.hasActiveSession();
   final activeTokenId = storage.getActiveTokenId();
+  final hasDoctorSession = storage.hasDoctorSession();
+
+  String initialRoute;
+  if (hasDoctorSession) {
+    initialRoute = AppRouter.doctorAvailability;
+  } else if (hasSession && activeTokenId != null) {
+    initialRoute = AppRouter.myToken;
+  } else {
+    initialRoute = AppRouter.welcome;
+  }
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LocaleProvider(storage)),
         ChangeNotifierProvider(create: (_) => TokenProvider()),
+        ChangeNotifierProvider(create: (_) => DoctorProvider()),
       ],
       child: HospitalPatientApp(
-        initialRoute: hasSession && activeTokenId != null 
-            ? AppRouter.myToken 
-            : AppRouter.welcome,
+        initialRoute: initialRoute,
         initialTokenId: activeTokenId,
       ),
     ),

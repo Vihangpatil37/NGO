@@ -151,6 +151,80 @@ class ApiService {
     }
     return 'An unexpected error occurred. Please try again.';
   }
+
+  // --- Doctor API ---
+
+  Future<Map<String, dynamic>> doctorLogin({
+    required String phoneNumber,
+    required String pin,
+  }) async {
+    try {
+      final dio = Dio(BaseOptions(
+        baseUrl: '$baseUrl${AppConstants.doctorApiBasePath}',
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ));
+      final response = await dio.post('/login', data: {
+        'phoneNumber': phoneNumber,
+        'pin': pin,
+      });
+      return response.data;
+    } on DioException catch (e) {
+      throw _parseError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> getDoctorProfile(String token) async {
+    try {
+      final dio = _createDoctorDio(token);
+      final response = await dio.get('/me');
+      return response.data;
+    } on DioException catch (e) {
+      throw _parseError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> getDoctorAvailability(String token) async {
+    try {
+      final dio = _createDoctorDio(token);
+      final response = await dio.get('/availability');
+      return response.data;
+    } on DioException catch (e) {
+      throw _parseError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> submitDoctorAvailability(
+    String token,
+    String status,
+  ) async {
+    try {
+      final dio = _createDoctorDio(token);
+      final response = await dio.post('/availability', data: {
+        'status': status,
+      });
+      return response.data;
+    } on DioException catch (e) {
+      throw _parseError(e);
+    }
+  }
+
+  Dio _createDoctorDio(String token) {
+    return Dio(BaseOptions(
+      baseUrl: '$baseUrl${AppConstants.doctorApiBasePath}',
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ));
+  }
 }
 
 class DuplicateTokenException implements Exception {

@@ -12,5 +12,6 @@ router.post('/cases/lookup', validate(oldCaseSchema), PatientController.lookupCa
 router.post('/queue/register', validateRegistrationWindow, validate(oldCaseSchema), PatientController.registerOldCase);
 router.get('/token', PatientController.getTokenStatus);
 router.get('/queue/status', PatientController.getHospitalQueueStatus);
+router.patch('/language', PatientController.updateLanguage);
 
 export default router;

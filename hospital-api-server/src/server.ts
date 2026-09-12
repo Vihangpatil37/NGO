@@ -24,7 +24,7 @@ const startServer = async (): Promise<void> => {
       logger.info(` Hospital Management API Server (TypeScript)`);
       logger.info(` Hospital: ${env.HOSPITAL_NAME}`);
       logger.info(` Local: http://localhost:${env.PORT}`);
-      logger.info(` Wi-Fi LAN: http://192.168.1.239:${env.PORT}`);
+      logger.info(` Wi-Fi LAN: http://192.168.1.10:${env.PORT}`);
       logger.info(` Environment: ${env.NODE_ENV}`);
       logger.info(` 24/7 Registration Testing: ${env.ALLOW_24_7_REGISTRATION}`);
       logger.info(`=========================================`);

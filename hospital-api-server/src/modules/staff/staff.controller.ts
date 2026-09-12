@@ -11,6 +11,7 @@ import { getRegistrationWindowId } from '../../middleware/validateRegistrationWi
 import { logger } from '../../utils/logger';
 import { notifyTokenStatusChange, notifyAdminNewToken } from '../../infrastructure/socket/notifier';
 import QueueService from '../tokens/queue.service';
+import NotificationService from '../notifications/notification.service';
 
 const unwrapParam = (param: string | string[] | undefined): string => {
   if (!param) return '';
@@ -66,6 +67,17 @@ export class StaffController {
       await token.save();
 
       notifyTokenStatusChange((req as any).io, token, newStatus);
+
+      // Trigger N03 (TOKEN_CALLED) and evaluate N02 (TURN_NEAR)
+      if (newStatus === 'called' && token.patientId) {
+        NotificationService.onTokenCalled(
+          (req as any).io,
+          token.patientId.toString(),
+          token._id.toString(),
+          token.tokenNumber,
+          token.registrationWindowId
+        ).catch(err => logger.error({ err }, 'Failed to dispatch TOKEN_CALLED notification'));
+      }
 
       res.status(200).json({ message: `Token marked as ${newStatus}`, token });
     } catch (error) {
@@ -297,7 +309,7 @@ export class StaffController {
   public static async updatePatient(req: Request, res: Response): Promise<void> {
     try {
       const id = unwrapParam(req.params.id);
-      const allowedUpdates = ['name', 'phoneNumber', 'villageName', 'caseNumber', 'caseType', 'age'];
+      const allowedUpdates = ['name', 'phoneNumber', 'villageName', 'caseNumber', 'caseType', 'age', 'preferredLanguage'];
       const updates: any = {};
 
       allowedUpdates.forEach((key) => {
@@ -466,6 +478,32 @@ export class StaffController {
       res.status(200).json({ success: true, message: 'Doctor deleted successfully' });
     } catch (error) {
       logger.error({ err: error }, 'deleteDoctor error');
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  public static async resetDoctorPin(req: Request, res: Response): Promise<void> {
+    try {
+      const id = unwrapParam(req.params.id);
+      const { pin } = req.body;
+
+      if (!pin) {
+        res.status(400).json({ success: false, error: { message: 'PIN is required' } });
+        return;
+      }
+
+      const doctor = await Doctor.findById(id);
+      if (!doctor) {
+        res.status(404).json({ success: false, error: { message: 'Doctor not found' } });
+        return;
+      }
+
+      doctor.pinHash = await DoctorService.hashPassword(pin);
+      await doctor.save();
+
+      res.status(200).json({ success: true, message: 'Doctor PIN updated successfully' });
+    } catch (error) {
+      logger.error({ err: error }, 'resetDoctorPin error');
       res.status(500).json({ error: 'Internal server error' });
     }
   }

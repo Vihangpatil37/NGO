@@ -11,6 +11,7 @@ import { toPatientDTO } from './patient.dto';
 import { notifyAdminNewToken } from '../../infrastructure/socket/notifier';
 import QueueToken from '../../models/QueueToken';
 import Registration from '../../models/Registration';
+import NotificationService from '../notifications/notification.service';
 
 export class PatientController {
   /**
@@ -19,7 +20,7 @@ export class PatientController {
    */
   public static async registerNewCase(req: Request, res: Response): Promise<void> {
     try {
-      const { name, villageName, phoneNumber, age } = req.body;
+      const { name, villageName, phoneNumber, age, preferredLanguage } = req.body;
       const windowId = getRegistrationWindowId();
 
       let patient = await Patient.findOne({ phoneNumber });
@@ -32,12 +33,14 @@ export class PatientController {
           villageName,
           phoneNumber,
           caseNumber,
-          age
+          age,
+          preferredLanguage: ['gu', 'hi', 'en'].includes(preferredLanguage) ? preferredLanguage : 'en'
         });
       } else {
         patient.name = name;
         patient.villageName = villageName;
         if (age !== undefined) patient.age = age;
+        if (preferredLanguage && ['gu', 'hi', 'en'].includes(preferredLanguage)) { patient.preferredLanguage = preferredLanguage; }
       }
       await patient.save();
 
@@ -65,6 +68,16 @@ export class PatientController {
       const sessionToken = issueSessionToken(patient._id, result.token._id, result.registration._id);
 
       await notifyAdminNewToken((req as any).io, result.registration, result.token);
+
+      // N01: Registration Confirmed Notification (Idempotent, DB-backed)
+      NotificationService.onRegistrationConfirmed(
+        (req as any).io,
+        patient._id.toString(),
+        result.registration._id.toString(),
+        result.token._id.toString(),
+        result.tokenNumber,
+        windowId
+      ).catch(e => logger.error({ e }, 'Failed to dispatch registration confirmed notification'));
 
       sendSuccess(res, {
         tokenNumber: result.tokenNumber,
@@ -112,7 +125,7 @@ export class PatientController {
    */
   public static async registerOldCase(req: Request, res: Response): Promise<void> {
     try {
-      const { phoneNumber, caseNumber } = req.body;
+      const { phoneNumber, caseNumber, preferredLanguage } = req.body;
 
       const patient = await Patient.findOne({
         phoneNumber,
@@ -122,6 +135,11 @@ export class PatientController {
       if (!patient) {
         sendError(res, "We couldn't find this case. Please check your mobile number and Case ID.", 'CASE_NOT_FOUND', 404);
         return;
+      }
+
+      if (preferredLanguage && ['gu', 'hi', 'en'].includes(preferredLanguage)) {
+        patient.preferredLanguage = preferredLanguage;
+        await patient.save();
       }
 
       const windowId = getRegistrationWindowId();
@@ -149,6 +167,16 @@ export class PatientController {
       const sessionToken = issueSessionToken(patient._id, result.token._id, result.registration._id);
 
       await notifyAdminNewToken((req as any).io, result.registration, result.token);
+
+      // N01: Registration Confirmed Notification (Idempotent, DB-backed)
+      NotificationService.onRegistrationConfirmed(
+        (req as any).io,
+        patient._id.toString(),
+        result.registration._id.toString(),
+        result.token._id.toString(),
+        result.tokenNumber,
+        windowId
+      ).catch(e => logger.error({ e }, 'Failed to dispatch registration confirmed notification'));
 
       sendSuccess(res, {
         tokenNumber: result.tokenNumber,
@@ -257,6 +285,23 @@ export class PatientController {
     } catch (error) {
       logger.error({ err: error }, 'getHospitalQueueStatus error');
       sendError(res, 'Error fetching queue status', 'STATUS_ERROR', 500);
+    }
+  }
+
+  public static async updateLanguage(req: Request, res: Response): Promise<void> {
+    try {
+      const { patientId, preferredLanguage } = req.body;
+      if (!patientId || !['gu', 'hi', 'en'].includes(preferredLanguage)) {
+        sendError(res, 'Valid patientId and preferredLanguage (gu/hi/en) required', 'VALIDATION_ERROR', 400);
+        return;
+      }
+      const patient = await Patient.findByIdAndUpdate(patientId, { preferredLanguage }, { new: true });
+      if (!patient) { sendError(res, 'Patient not found', 'NOT_FOUND', 404); return; }
+      const DeviceToken = (await import('../notifications/deviceToken.model')).default;
+      await DeviceToken.updateOne({ userId: patient._id }, { $set: { locale: preferredLanguage } });
+      sendSuccess(res, { preferredLanguage: patient.preferredLanguage }, 'Language updated');
+    } catch (error) {
+      sendError(res, 'Failed to update language', 'UPDATE_FAILED', 500);
     }
   }
 }

@@ -46,11 +46,15 @@ class _NewCaseScreenState extends State<NewCaseScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final storage = await SessionStorage.getInstance();
+      final langCode = storage.getLanguageCode();
+
       final response = await _apiService.registerNewCase(
         name: _nameController.text.trim(),
         villageName: _villageController.text.trim(),
         phoneNumber: _phoneController.text.trim(),
         age: _ageController.text.isNotEmpty ? int.tryParse(_ageController.text.trim()) : null,
+        preferredLanguage: langCode,
       );
 
       final data = response['data'] as Map<String, dynamic>;
@@ -62,14 +66,16 @@ class _NewCaseScreenState extends State<NewCaseScreen> {
       final patient = data['patient'] as Map<String, dynamic>?;
       final String patientName = patient?['name'] ?? _nameController.text.trim();
 
+      final String? patientId = patient?['_id']?.toString() ?? patient?['id']?.toString();
+
       // Save session locally
-      final storage = await SessionStorage.getInstance();
       await storage.saveSession(
         sessionToken: sessionToken,
         tokenId: tokenId,
         tokenNumber: tokenNumber,
         caseNumber: caseNumber,
         patientName: patientName,
+        patientId: patientId,
       );
 
       if (!mounted) return;

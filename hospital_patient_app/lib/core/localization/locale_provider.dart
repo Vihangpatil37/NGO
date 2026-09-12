@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../storage/session_storage.dart';
+import '../network/api_service.dart';
 
 class LocaleProvider extends ChangeNotifier {
   Locale _locale;
@@ -15,5 +16,10 @@ class LocaleProvider extends ChangeNotifier {
     _locale = locale;
     await _storage.setLanguageCode(locale.languageCode);
     notifyListeners();
+
+    final patientId = _storage.getPatientId();
+    if (patientId != null && patientId.isNotEmpty) {
+      try { await ApiService().updateLanguagePreference(patientId: patientId, languageCode: locale.languageCode); } catch (_) {}
+    }
   }
 }

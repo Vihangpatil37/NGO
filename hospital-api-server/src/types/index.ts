@@ -11,6 +11,7 @@ export interface IPatient extends Document {
   phoneNumber: string;
   caseNumber: string;
   age?: number;
+  preferredLanguage?: 'gu' | 'hi' | 'en';
   createdAt: Date;
   updatedAt: Date;
 }

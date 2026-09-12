@@ -210,4 +210,9 @@ class LocalNotificationService {
       payload: payload,
     );
   }
+
+  /// Cancel and dismiss all active notifications from status bar
+  Future<void> cancelAll() async {
+    await _notificationsPlugin.cancelAll();
+  }
 }

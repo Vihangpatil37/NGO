@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
+import '../services/global_notification_service.dart';
 
 class SessionStorage {
   static SessionStorage? _instance;
@@ -20,12 +21,17 @@ class SessionStorage {
     required int tokenNumber,
     required String caseNumber,
     required String patientName,
+    String? patientId,
   }) async {
     await _prefs?.setString(AppConstants.keySessionToken, sessionToken);
     await _prefs?.setString(AppConstants.keyActiveTokenId, tokenId);
     await _prefs?.setInt(AppConstants.keyTokenNumber, tokenNumber);
     await _prefs?.setString(AppConstants.keyCaseNumber, caseNumber);
     await _prefs?.setString(AppConstants.keyPatientName, patientName);
+    if (patientId != null) {
+      await _prefs?.setString(AppConstants.keyPatientId, patientId);
+    }
+    GlobalNotificationService().syncRooms();
   }
 
   String? getSessionToken() => _prefs?.getString(AppConstants.keySessionToken);
@@ -33,6 +39,7 @@ class SessionStorage {
   int? getTokenNumber() => _prefs?.getInt(AppConstants.keyTokenNumber);
   String? getCaseNumber() => _prefs?.getString(AppConstants.keyCaseNumber);
   String? getPatientName() => _prefs?.getString(AppConstants.keyPatientName);
+  String? getPatientId() => _prefs?.getString(AppConstants.keyPatientId);
 
   bool hasActiveSession() {
     final token = getSessionToken();
@@ -46,6 +53,8 @@ class SessionStorage {
     await _prefs?.remove(AppConstants.keyTokenNumber);
     await _prefs?.remove(AppConstants.keyCaseNumber);
     await _prefs?.remove(AppConstants.keyPatientName);
+    await _prefs?.remove(AppConstants.keyPatientId);
+    GlobalNotificationService().syncRooms();
   }
 
   // Language preference

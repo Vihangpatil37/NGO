@@ -11,9 +11,16 @@ export const env = {
   CORS_ORIGIN_ADMIN: process.env.CORS_ORIGIN_ADMIN || 'http://localhost:3001',
   ADMIN_JWT_SECRET: process.env.ADMIN_JWT_SECRET || 'super_secret_hospital_jwt_key',
   PATIENT_JWT_SECRET: process.env.PATIENT_JWT_SECRET || 'patient_session_secret_key_2026',
+  DOCTOR_JWT_SECRET: process.env.DOCTOR_JWT_SECRET!,
   TIMEZONE: process.env.TIMEZONE || 'Asia/Kolkata',
   HOSPITAL_NAME: process.env.HOSPITAL_NAME || 'Shri Satya sai gramya arogya mandir',
   ALLOW_24_7_REGISTRATION: process.env.ALLOW_24_7_REGISTRATION !== 'false'
 };
+
+// Fail fast if required secrets are missing
+if (!env.DOCTOR_JWT_SECRET) {
+  console.error('FATAL: DOCTOR_JWT_SECRET environment variable is required');
+  process.exit(1);
+}
 
 export default env;

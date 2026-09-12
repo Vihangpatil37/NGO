@@ -5,12 +5,13 @@ import { login } from '../lib/api';
 import QueueBoard from '../components/QueueBoard';
 import RegistrationsList from '../components/RegistrationsList';
 import PatientsView from '../components/PatientsView';
+import DoctorsView from '../components/DoctorsView';
 
 export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'queue' | 'registrations' | 'patients'>('queue');
+  const [activeTab, setActiveTab] = useState<'queue' | 'registrations' | 'patients' | 'doctors'>('queue');
   const [globalSearch, setGlobalSearch] = useState('');
   const [searchTriggered, setSearchTriggered] = useState('');
 
@@ -112,11 +113,18 @@ export default function AdminDashboard() {
            >
              Patients
            </button>
+           <button 
+             onClick={() => setActiveTab('doctors')}
+             className={`flex-1 min-w-[100px] py-3 text-center font-medium text-sm transition-colors ${activeTab === 'doctors' ? 'border-b-2 border-[var(--ink)] text-[var(--ink)]' : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'}`}
+           >
+             Doctors
+           </button>
         </div>
 
         {activeTab === 'queue' && <QueueBoard />}
         {activeTab === 'registrations' && <RegistrationsList />}
         {activeTab === 'patients' && <PatientsView searchQuery={searchTriggered} />}
+        {activeTab === 'doctors' && <DoctorsView />}
     </div>
   );
 }

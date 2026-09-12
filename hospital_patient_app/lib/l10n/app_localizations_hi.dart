@@ -9,7 +9,7 @@ class AppLocalizationsHi extends AppLocalizations {
   AppLocalizationsHi([String locale = 'hi']) : super(locale);
 
   @override
-  String get hospitalName => 'श्री सत्य साई ग्राम्य आरोग्य मंदिर';
+  String get hospitalName => 'आरोग्यमित्र (ArogyaMitra)';
 
   @override
   String get welcomeTitle => 'स्वागत है';

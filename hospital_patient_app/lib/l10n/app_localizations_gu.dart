@@ -9,7 +9,7 @@ class AppLocalizationsGu extends AppLocalizations {
   AppLocalizationsGu([String locale = 'gu']) : super(locale);
 
   @override
-  String get hospitalName => 'શ્રી સત્ય સાંઈ ગ્રામ્ય આરોગ્ય મંદિર';
+  String get hospitalName => 'આરોગ્યમિત્ર (ArogyaMitra)';
 
   @override
   String get welcomeTitle => 'સ્વાગત છે';

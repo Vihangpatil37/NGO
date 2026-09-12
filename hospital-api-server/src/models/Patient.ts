@@ -7,7 +7,8 @@ const patientSchema = new Schema<IPatient>({
   villageName: { type: String, required: true, trim: true },
   phoneNumber: { type: String, required: true, index: true, trim: true },
   caseNumber: { type: String, required: true, index: true, trim: true },
-  age: { type: Number, min: 0, max: 150 }
+  age: { type: Number, min: 0, max: 150 },
+  preferredLanguage: { type: String, enum: ['gu', 'hi', 'en'], default: 'en' }
 }, { timestamps: true });
 
 export const Patient = mongoose.model<IPatient>('Patient', patientSchema);

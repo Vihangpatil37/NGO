@@ -6,12 +6,13 @@ import QueueBoard from '../components/QueueBoard';
 import RegistrationsList from '../components/RegistrationsList';
 import PatientsView from '../components/PatientsView';
 import DoctorsView from '../components/DoctorsView';
+import AnnouncementsView from '../components/AnnouncementsView';
 
 export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'queue' | 'registrations' | 'patients' | 'doctors'>('queue');
+  const [activeTab, setActiveTab] = useState<'queue' | 'registrations' | 'patients' | 'doctors' | 'announcements'>('queue');
   const [globalSearch, setGlobalSearch] = useState('');
   const [searchTriggered, setSearchTriggered] = useState('');
 
@@ -47,9 +48,13 @@ export default function AdminDashboard() {
   if (!authed) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
-        <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
-           <h1 className="text-2xl font-bold text-center mb-6">Staff Login</h1>
-           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4 text-center">
+           <div className="flex justify-center mb-2">
+             <img src="/logo.png" alt="ArogyaMitra Logo" className="w-20 h-20 rounded-2xl shadow-sm object-cover" />
+           </div>
+           <h1 className="text-2xl font-bold tracking-tight text-[var(--ink)]">ArogyaMitra</h1>
+           <p className="text-sm text-[var(--ink-muted)] mb-4">Staff & Doctor Administration</p>
+           {error && <p className="text-red-500 text-sm">{error}</p>}
            <input 
              type="password" 
              value={pin}
@@ -66,7 +71,10 @@ export default function AdminDashboard() {
   return (
     <div>
         <header className="bg-[var(--surface)] p-4 border-b border-[var(--border)] flex flex-col md:flex-row gap-4 justify-between items-center">
-           <h1 className="font-bold whitespace-nowrap">Hospital Admin</h1>
+           <div className="flex items-center gap-3">
+             <img src="/logo.png" alt="ArogyaMitra Logo" className="w-9 h-9 rounded-lg object-cover" />
+             <h1 className="font-bold whitespace-nowrap text-lg">ArogyaMitra</h1>
+           </div>
            
            <form onSubmit={handleSearch} className="flex-1 max-w-md flex relative">
              <input 
@@ -119,12 +127,19 @@ export default function AdminDashboard() {
            >
              Doctors
            </button>
+           <button 
+             onClick={() => setActiveTab('announcements')}
+             className={`flex-1 min-w-[100px] py-3 text-center font-medium text-sm transition-colors ${activeTab === 'announcements' ? 'border-b-2 border-[var(--ink)] text-[var(--ink)]' : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'}`}
+           >
+             📢 Notices
+           </button>
         </div>
 
         {activeTab === 'queue' && <QueueBoard />}
         {activeTab === 'registrations' && <RegistrationsList />}
         {activeTab === 'patients' && <PatientsView searchQuery={searchTriggered} />}
         {activeTab === 'doctors' && <DoctorsView />}
+        {activeTab === 'announcements' && <AnnouncementsView />}
     </div>
   );
 }

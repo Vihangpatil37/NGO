@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String hospitalName = 'Shri Satya sai gramya arogya mandir';
+  static const String hospitalName = 'ArogyaMitra';
   static const String hospitalHelpline = '+91 98765 43210';
   static const String hospitalAddress = 'Gramya Arogya Mandir Campus, Main Road';
 
@@ -7,7 +7,7 @@ class AppConstants {
   // Wi-Fi LAN IP for physical device: 192.168.1.239, for Android emulator: 10.0.2.2
   static const String defaultApiUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://192.168.1.4:4000',
+    defaultValue: 'http://192.168.1.10:4000',
   );
   static const String apiBasePath = '/api/v1/patient';
 
@@ -17,6 +17,7 @@ class AppConstants {
   static const String keyTokenNumber = 'token_number';
   static const String keyCaseNumber = 'case_number';
   static const String keyPatientName = 'patient_name';
+  static const String keyPatientId = 'patient_id';
   static const String keyLanguageCode = 'app_language_code';
 
   // Doctor session keys

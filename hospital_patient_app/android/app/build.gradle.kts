@@ -6,10 +6,10 @@ plugins {
 
 android {
     namespace = "com.hospital.hospital_patient_app"
-    compileSdk = 36
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 37
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -42,6 +42,10 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 kotlin {

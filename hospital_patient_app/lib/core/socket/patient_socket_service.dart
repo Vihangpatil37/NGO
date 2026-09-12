@@ -16,6 +16,8 @@ class PatientSocketService {
     Function(dynamic)? onTokenCompleted,
     Function(dynamic)? onTokenCancelled,
     Function(dynamic)? onQueueUpdated,
+    Function(dynamic)? onNotification,
+    Function(dynamic)? onTurnNear,
   }) {
     disconnect();
 
@@ -44,6 +46,14 @@ class PatientSocketService {
       _socket?.on('token:called', onTokenCalled);
     }
 
+    if (onTurnNear != null) {
+      _socket?.on('token:turn-near', onTurnNear);
+    }
+
+    if (onNotification != null) {
+      _socket?.on('notification:new', onNotification);
+    }
+
     if (onPositionUpdate != null) {
       _socket?.on('token:position-update', onPositionUpdate);
     }
@@ -59,6 +69,11 @@ class PatientSocketService {
     if (onQueueUpdated != null) {
       _socket?.on('queue:updated', onQueueUpdated);
     }
+
+    // Broadcast notices
+    _socket?.on('announcement:broadcast', (data) {
+      if (onNotification != null) onNotification(data);
+    });
 
     _socket?.onDisconnect((_) {
       debugPrint('[Socket] Disconnected from server');

@@ -27,7 +27,11 @@ export default function QueueBoard() {
     socket.emit('join:admin');
 
     const handleNewToken = (data: any) => {
-        setQueue(prev => [...prev, data.token].sort((a,b) => a.tokenNumber - b.tokenNumber));
+        const enrichedToken = {
+            ...data.token,
+            registrationId: data.registration
+        };
+        setQueue(prev => [...prev, enrichedToken].sort((a,b) => a.tokenNumber - b.tokenNumber));
     };
 
     const handleUpdated = (data: { tokenId: string, status: string }) => {

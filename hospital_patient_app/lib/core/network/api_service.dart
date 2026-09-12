@@ -43,6 +43,7 @@ class ApiService {
     required String villageName,
     required String phoneNumber,
     int? age,
+    String? preferredLanguage,
   }) async {
     try {
       final response = await _dio.post(
@@ -52,6 +53,7 @@ class ApiService {
           'villageName': villageName,
           'phoneNumber': phoneNumber,
           if (age != null) 'age': age,
+          if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
         },
       );
       return response.data;
@@ -83,6 +85,7 @@ class ApiService {
   Future<Map<String, dynamic>> registerOldCase({
     required String phoneNumber,
     required String caseNumber,
+    String? preferredLanguage,
   }) async {
     try {
       final response = await _dio.post(
@@ -90,12 +93,20 @@ class ApiService {
         data: {
           'phoneNumber': phoneNumber,
           'caseNumber': caseNumber,
+          if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
         },
       );
       return response.data;
     } on DioException catch (e) {
       throw _parseError(e);
     }
+  }
+
+  /// Update user language preference
+  Future<void> updateLanguagePreference({required String patientId, required String languageCode}) async {
+    try {
+      await _dio.patch('/language', data: {'patientId': patientId, 'preferredLanguage': languageCode});
+    } catch (_) {}
   }
 
   /// Fetch latest live token status
@@ -211,6 +222,73 @@ class ApiService {
     } on DioException catch (e) {
       throw _parseError(e);
     }
+  }
+
+  // --- Notification APIs ---
+
+  /// Register device FCM token for push notifications
+  Future<void> registerDeviceToken({
+    required String patientId,
+    required String token,
+    String platform = 'android',
+    String locale = 'en',
+  }) async {
+    try {
+      await _dio.post(
+        '$baseUrl/api/v1/notifications/device-token',
+        data: {
+          'patientId': patientId,
+          'token': token,
+          'platform': platform,
+          'locale': locale,
+        },
+      );
+    } catch (_) {
+      // Non-blocking background registration
+    }
+  }
+
+  /// Get In-App Inbox notification history
+  Future<Map<String, dynamic>> getNotifications({
+    String? patientId,
+    int page = 1,
+    int limit = 30,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$baseUrl/api/v1/notifications',
+        queryParameters: {
+          if (patientId != null) 'patientId': patientId,
+          'page': page,
+          'limit': limit,
+        },
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw _parseError(e);
+    }
+  }
+
+  /// Get unread notification count
+  Future<int> getUnreadNotificationCount({String? patientId}) async {
+    try {
+      final response = await _dio.get(
+        '$baseUrl/api/v1/notifications/unread-count',
+        queryParameters: {
+          if (patientId != null) 'patientId': patientId,
+        },
+      );
+      return response.data?['data']?['unreadCount'] ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  /// Mark notification as read
+  Future<void> markNotificationAsRead(String notificationId) async {
+    try {
+      await _dio.patch('$baseUrl/api/v1/notifications/$notificationId/read');
+    } catch (_) {}
   }
 
   Dio _createDoctorDio(String token) {

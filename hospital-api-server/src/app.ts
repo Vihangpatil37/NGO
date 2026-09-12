@@ -4,6 +4,8 @@ import env from './config/env';
 import patientRoutes from './modules/patients/patient.routes';
 import staffRoutes from './modules/staff/staff.routes';
 import doctorRoutes from './modules/doctors/doctor.routes';
+import notificationRoutes from './modules/notifications/notification.routes';
+import deviceRoutes from './modules/notifications/device.routes';
 import errorHandler from './middleware/errorHandler';
 
 export const createApp = (): Express => {
@@ -43,6 +45,12 @@ export const createApp = (): Express => {
 
   // Doctor Routes
   app.use('/api/doctors', doctorRoutes);
+
+  // Notification Routes (FCM, in-app inbox, read/unread, broadcasts)
+  app.use('/api/v1/notifications', notificationRoutes);
+
+  // Device Token Registration Routes (FCM endpoints matching spec)
+  app.use('/api/v1/devices', deviceRoutes);
 
   // Backwards compatibility for existing web portals
   app.use('/api/registrations', patientRoutes);

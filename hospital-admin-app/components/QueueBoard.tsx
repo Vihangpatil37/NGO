@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { getLiveQueue, updateTokenAction } from '../lib/api';
 import { socket } from '../lib/socket';
+import WalkInRegistrationModal from './WalkInRegistrationModal';
 
 export default function QueueBoard() {
   const [queue, setQueue] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddPatient, setShowAddPatient] = useState(false);
 
   const fetchQueue = async () => {
     try {
@@ -79,9 +81,14 @@ export default function QueueBoard() {
     <div className="p-4 space-y-4">
       <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Live Queue</h2>
-          <button onClick={() => handleAction('next', 'call-next')} className="btn-primary w-auto px-6 h-10 text-sm">
-             Call Next
-          </button>
+          <div className="flex gap-2">
+              <button onClick={() => setShowAddPatient(true)} className="btn-secondary w-auto px-4 h-10 text-sm">
+                 + Add Patient
+              </button>
+              <button onClick={() => handleAction('next', 'call-next')} className="btn-primary w-auto px-6 h-10 text-sm">
+                 Call Next
+              </button>
+          </div>
       </div>
 
       {queue.length === 0 ? (
@@ -117,6 +124,10 @@ export default function QueueBoard() {
                   </div>
               ))}
           </div>
+      )}
+
+      {showAddPatient && (
+         <WalkInRegistrationModal onClose={() => setShowAddPatient(false)} />
       )}
     </div>
   );

@@ -143,3 +143,25 @@ export async function deleteDoctor(id: string) {
     }
     return res.json();
 }
+
+export async function registerWalkInNew(data: { phoneNumber: string; name: string; villageName: string; age?: number }) {
+    const res = await fetch(`${API_URL}/api/v1/patient/cases/new`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error?.message || 'Failed to register new patient');
+    return json;
+}
+
+export async function registerWalkInOld(data: { phoneNumber: string; caseNumber: string }) {
+    const res = await fetch(`${API_URL}/api/v1/patient/queue/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error?.message || 'Failed to register returning patient');
+    return json;
+}

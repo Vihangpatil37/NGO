@@ -3,8 +3,9 @@ import '../../core/theme/app_theme.dart';
 import '../../core/navigation/app_router.dart';
 import '../../shared/widgets/primary_button.dart';
 import 'package:hospital_patient_app/l10n/app_localizations.dart';
+import '../../core/services/local_notification_service.dart';
 
-class TokenConfirmedScreen extends StatelessWidget {
+class TokenConfirmedScreen extends StatefulWidget {
   final int tokenNumber;
   final String caseNumber;
   final int queuePosition;
@@ -19,6 +20,23 @@ class TokenConfirmedScreen extends StatelessWidget {
     required this.tokenId,
     required this.patientName,
   });
+
+  @override
+  State<TokenConfirmedScreen> createState() => _TokenConfirmedScreenState();
+}
+
+class _TokenConfirmedScreenState extends State<TokenConfirmedScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      LocalNotificationService().showNotification(
+        title: '✅ Registration Confirmed / નોંધણી સફળ',
+        body: 'Your OPD Token is #${widget.tokenNumber}. Please keep this token with you.',
+        priority: 'normal',
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +78,7 @@ class TokenConfirmedScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  AppLocalizations.of(context)!.caseIdDisplay(caseNumber, patientName),
+                  AppLocalizations.of(context)!.caseIdDisplay(widget.caseNumber, widget.patientName),
                   style: const TextStyle(
                     fontSize: 16,
                     color: AppColors.textSecondary,
@@ -91,7 +109,7 @@ class TokenConfirmedScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        tokenNumber.toString().padLeft(2, '0'),
+                        widget.tokenNumber.toString().padLeft(2, '0'),
                         style: const TextStyle(
                           fontSize: 72,
                           fontWeight: FontWeight.w900,
@@ -107,7 +125,7 @@ class TokenConfirmedScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          '$queuePosition ${AppLocalizations.of(context)!.peopleBeforeYou}',
+                          '${widget.queuePosition} ${AppLocalizations.of(context)!.peopleBeforeYou}',
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -138,7 +156,7 @@ class TokenConfirmedScreen extends StatelessWidget {
                     Navigator.pushReplacementNamed(
                       context,
                       AppRouter.myToken,
-                      arguments: {'tokenId': tokenId},
+                      arguments: {'tokenId': widget.tokenId},
                     );
                   },
                 ),

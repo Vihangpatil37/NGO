@@ -5,9 +5,12 @@ import '../../core/storage/session_storage.dart';
 import '../../core/socket/patient_socket_service.dart';
 import '../../core/models/token_status.dart';
 
+import '../../core/services/local_notification_service.dart';
+
 class TokenProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
   final PatientSocketService _socketService = PatientSocketService();
+  final LocalNotificationService _localNotifService = LocalNotificationService();
   
   TokenStatus? _status;
   bool _isLoading = true;
@@ -45,13 +48,51 @@ class TokenProvider extends ChangeNotifier {
     _socketService.connect(
       tokenId: tokenId,
       onTokenCalled: _handleTokenCalled,
+      onTurnNear: _handleTurnNear,
+      onNotification: _handleNotification,
       onQueueUpdated: _handleQueueUpdated,
     );
   }
 
   void _handleTokenCalled(dynamic data) {
+    final tokenNum = data?['tokenNumber'] ?? _status?.tokenNumber;
+    _localNotifService.showNotification(
+      title: '🚨 YOUR TURN / તમારો વારો',
+      body: 'Token #$tokenNum has been called. Please proceed to the doctor\'s room immediately.',
+      priority: 'urgent',
+    );
+
     if (_tokenId != null) {
-      // Re-fetch to get accurate queue positions and state
+      fetchStatus(_tokenId!);
+    }
+  }
+
+  void _handleTurnNear(dynamic data) {
+    final tokenNum = data?['tokenNumber'] ?? _status?.tokenNumber;
+    final ahead = data?['patientsAhead'] ?? 3;
+    _localNotifService.showNotification(
+      title: '⏳ YOUR TURN IS NEAR / વારો નજીક છે',
+      body: 'Token #$tokenNum: Only $ahead patient(s) ahead. Please be ready near the OPD room.',
+      priority: 'high',
+    );
+
+    if (_tokenId != null) {
+      fetchStatus(_tokenId!);
+    }
+  }
+
+  void _handleNotification(dynamic data) {
+    final title = data?['renderedTitle'] ?? data?['title'] ?? 'ArogyaMitra Alert';
+    final body = data?['renderedBody'] ?? data?['message'] ?? '';
+    final priority = data?['priority'] ?? 'high';
+
+    _localNotifService.showNotification(
+      title: title,
+      body: body,
+      priority: priority,
+    );
+
+    if (_tokenId != null) {
       fetchStatus(_tokenId!);
     }
   }

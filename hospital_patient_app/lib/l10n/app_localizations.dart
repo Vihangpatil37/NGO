@@ -103,7 +103,7 @@ abstract class AppLocalizations {
   /// No description provided for @hospitalName.
   ///
   /// In en, this message translates to:
-  /// **'Shri Satya sai gramya arogya mandir'**
+  /// **'ArogyaMitra'**
   String get hospitalName;
 
   /// No description provided for @welcomeTitle.

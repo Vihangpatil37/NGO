@@ -7,16 +7,28 @@ import 'core/navigation/app_router.dart';
 import 'features/token/token_provider.dart';
 import 'core/localization/locale_provider.dart';
 import 'features/doctor/doctor_provider.dart';
+import 'core/services/local_notification_service.dart';
+import 'core/services/global_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize local notifications service & create channels
+  await LocalNotificationService().initialize();
+
+  // Initialize persistent global WebSocket listener for instant broadcasts & live alerts
+  await GlobalNotificationService().initialize();
+
   final storage = await SessionStorage.getInstance();
   final hasSession = storage.hasActiveSession();
   final activeTokenId = storage.getActiveTokenId();
   final hasDoctorSession = storage.hasDoctorSession();
+  final fromNotification = await LocalNotificationService().didLaunchFromNotification();
 
   String initialRoute;
-  if (hasDoctorSession) {
+  if (fromNotification) {
+    initialRoute = AppRouter.notifications;
+  } else if (hasDoctorSession) {
     initialRoute = AppRouter.doctorAvailability;
   } else if (hasSession && activeTokenId != null) {
     initialRoute = AppRouter.myToken;
@@ -54,6 +66,7 @@ class HospitalPatientApp extends StatelessWidget {
     final localeProvider = Provider.of<LocaleProvider>(context);
 
     return MaterialApp(
+      navigatorKey: AppRouter.navigatorKey,
       title: 'Hospital Token App',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,

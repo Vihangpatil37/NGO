@@ -4,6 +4,7 @@ export interface PatientDTO {
   villageName: string;
   caseNumber: string;
   age?: number;
+  preferredLanguage?: string;
   _id?: string;
 }
 
@@ -16,5 +17,6 @@ export const toPatientDTO = (patient: any): PatientDTO | null => {
     villageName: patient.villageName,
     caseNumber: patient.caseNumber,
     age: patient.age,
+    preferredLanguage: patient.preferredLanguage,
   };
 };

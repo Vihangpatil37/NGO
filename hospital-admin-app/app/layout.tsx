@@ -6,8 +6,11 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const jetBrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains' });
 
 export const metadata: Metadata = {
-  title: 'Hospital Admin',
-  description: 'Hospital Queue Management Admin',
+  title: 'ArogyaMitra Admin',
+  description: 'ArogyaMitra Hospital Queue & Doctor Management Admin Portal',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({

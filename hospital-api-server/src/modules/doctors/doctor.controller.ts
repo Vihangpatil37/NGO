@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import DoctorService from './doctor.service';
+import NotificationService from '../notifications/notification.service';
+import { getRegistrationWindowId } from '../../middleware/validateRegistrationWindow';
 import { sendSuccess, sendError } from '../../utils/apiResponse';
 import { logger } from '../../utils/logger';
 
@@ -69,6 +71,19 @@ export class DoctorController {
         req.doctor.doctorObjectId,
         status
       );
+
+      // N05: Trigger DOCTOR_UNAVAILABLE if marked not_coming
+      if (status === 'not_coming') {
+        const windowId = getRegistrationWindowId();
+        const profile = await DoctorService.getProfile(req.doctor.doctorObjectId);
+        NotificationService.onDoctorUnavailable(
+          (req as any).io,
+          req.doctor.doctorObjectId,
+          profile?.name || 'Doctor',
+          windowId,
+          windowId
+        ).catch(err => logger.error({ err }, 'Failed to dispatch DOCTOR_UNAVAILABLE notification'));
+      }
 
       sendSuccess(res, result, `Availability updated to ${status}`);
     } catch (error) {

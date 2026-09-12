@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get hospitalName => 'Shri Satya sai gramya arogya mandir';
+  String get hospitalName => 'ArogyaMitra';
 
   @override
   String get welcomeTitle => 'Welcome';

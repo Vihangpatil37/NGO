@@ -13,7 +13,7 @@ export const env = {
   PATIENT_JWT_SECRET: process.env.PATIENT_JWT_SECRET || 'patient_session_secret_key_2026',
   DOCTOR_JWT_SECRET: process.env.DOCTOR_JWT_SECRET!,
   TIMEZONE: process.env.TIMEZONE || 'Asia/Kolkata',
-  HOSPITAL_NAME: process.env.HOSPITAL_NAME || 'Shri Satya sai gramya arogya mandir',
+  HOSPITAL_NAME: process.env.HOSPITAL_NAME || 'ArogyaMitra',
   ALLOW_24_7_REGISTRATION: process.env.ALLOW_24_7_REGISTRATION !== 'false'
 };
 

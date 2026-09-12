@@ -14,6 +14,11 @@ class AppColors {
   static const Color yourTurn = Color(0xFFC62828);    // Red: YOUR TURN / Proceed to room
   static const Color yourTurnBg = Color(0xFFFFEBEE);
 
+  // Status colors & alerts
+  static const Color danger = Color(0xFFC62828);     // Red alert
+  static const Color warning = Color(0xFFF57F17);    // Amber warning
+  static const Color success = Color(0xFF2E7D32);    // Green success
+
   // Neutrals
   static const Color background = Color(0xFFF8F9FA);
   static const Color surface = Colors.white;

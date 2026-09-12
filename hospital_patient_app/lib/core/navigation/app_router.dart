@@ -7,8 +7,11 @@ import '../../features/token/my_token_screen.dart';
 import '../../features/help/help_screen.dart';
 import '../../features/doctor/doctor_login_screen.dart';
 import '../../features/doctor/doctor_availability_screen.dart';
+import '../../features/notifications/notification_inbox_screen.dart';
 
 class AppRouter {
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   static const String welcome = '/';
   static const String newCase = '/new-case';
   static const String oldCase = '/old-case';
@@ -17,6 +20,7 @@ class AppRouter {
   static const String help = '/help';
   static const String doctorLogin = '/doctor-login';
   static const String doctorAvailability = '/doctor-availability';
+  static const String notifications = '/notifications';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -53,6 +57,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const DoctorLoginScreen());
       case doctorAvailability:
         return MaterialPageRoute(builder: (_) => const DoctorAvailabilityScreen());
+      case notifications:
+        return MaterialPageRoute(builder: (_) => const NotificationInboxScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

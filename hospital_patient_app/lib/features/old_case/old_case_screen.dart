@@ -50,10 +50,14 @@ class _OldCaseScreenState extends State<OldCaseScreen> {
       final phoneNumber = _phoneController.text.trim();
       final caseNumber = _caseIdController.text.trim().toUpperCase();
 
+      final storage = await SessionStorage.getInstance();
+      final langCode = storage.getLanguageCode();
+
       // Register old case for today's queue
       final response = await _apiService.registerOldCase(
         phoneNumber: phoneNumber,
         caseNumber: caseNumber,
+        preferredLanguage: langCode,
       );
 
       final data = response['data'] as Map<String, dynamic>;
@@ -65,14 +69,16 @@ class _OldCaseScreenState extends State<OldCaseScreen> {
       final patient = data['patient'] as Map<String, dynamic>?;
       final String patientName = patient?['name'] ?? 'Patient';
 
+      final String? patientId = patient?['_id']?.toString() ?? patient?['id']?.toString();
+
       // Save session
-      final storage = await SessionStorage.getInstance();
       await storage.saveSession(
         sessionToken: sessionToken,
         tokenId: tokenId,
         tokenNumber: tokenNumber,
         caseNumber: resolvedCaseNumber,
         patientName: patientName,
+        patientId: patientId,
       );
 
       if (!mounted) return;

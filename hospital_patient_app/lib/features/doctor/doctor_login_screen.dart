@@ -55,19 +55,37 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 24),
-                    // Header icon
+                    const SizedBox(height: 12),
+                    // Doctor Hero Banner Image
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: double.infinity,
+                      height: 130,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
+                        color: const Color(0xFFE8F4FD),
                         borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.primaryLight, width: 1.5),
                       ),
-                      child: const Icon(
-                        Icons.medical_services_outlined,
-                        size: 40,
-                        color: AppColors.primary,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(19),
+                        child: Image.asset(
+                          'assets/images/doctor_login.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Center(
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryLight,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Icon(
+                                Icons.medical_services_outlined,
+                                size: 40,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),

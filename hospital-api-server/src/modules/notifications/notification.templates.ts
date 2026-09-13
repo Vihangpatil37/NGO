@@ -1,12 +1,4 @@
-export type NotificationType = 
-  | 'REGISTRATION_CONFIRMED'
-  | 'TURN_NEAR'
-  | 'TOKEN_CALLED'
-  | 'HOSPITAL_ANNOUNCEMENT'
-  | 'DOCTOR_AVAILABLE'
-  | 'DOCTOR_UNAVAILABLE'
-  | 'OPD_REMINDER'
-  | 'OPD_CLOSED';
+import { NotificationType } from './notification.types';
 
 interface TemplateDef {
   en: string;
@@ -53,26 +45,14 @@ const TEMPLATES: Record<NotificationType, { title: TemplateDef; body: TemplateDe
   },
   HOSPITAL_ANNOUNCEMENT: {
     title: {
-      en: '📢 Hospital Notice',
-      gu: '📢 હોસ્પિટલ સૂચના',
-      hi: '📢 अस्पताल सूचना'
+      en: '📢 {{title}}',
+      gu: '📢 {{title}}',
+      hi: '📢 {{title}}'
     },
     body: {
       en: '{{message}}',
       gu: '{{message}}',
       hi: '{{message}}'
-    }
-  },
-  DOCTOR_AVAILABLE: {
-    title: {
-      en: 'Doctor Available',
-      gu: 'ડૉક્ટર ઉપલબ્ધ છે',
-      hi: 'डॉक्टर उपलब्ध हैं'
-    },
-    body: {
-      en: 'The doctor has started seeing patients.',
-      gu: 'ડૉક્ટરે દર્દીઓને તપાસવાનું શરૂ કર્યું છે.',
-      hi: 'डॉक्टर ने मरीजों को देखना शुरू कर दिया है।'
     }
   },
   DOCTOR_UNAVAILABLE: {
@@ -85,18 +65,6 @@ const TEMPLATES: Record<NotificationType, { title: TemplateDef; body: TemplateDe
       en: 'The doctor is temporarily unavailable. Please wait.',
       gu: 'ડૉક્ટર અસ્થાયી રૂપે ઉપલબ્ધ નથી. કૃપા કરીને રાહ જુઓ.',
       hi: 'डॉक्टर अस्थायी रूप से उपलब्ध नहीं हैं। कृपया प्रतीक्षा करें।'
-    }
-  },
-  OPD_REMINDER: {
-    title: {
-      en: 'OPD Schedule Reminder',
-      gu: 'OPD સમય રિમાઇન્ડર',
-      hi: 'ओपीडी समय अनुस्मारक'
-    },
-    body: {
-      en: '{{message}}',
-      gu: '{{message}}',
-      hi: '{{message}}'
     }
   },
   OPD_CLOSED: {
@@ -130,8 +98,8 @@ export const renderNotificationTemplate = (
 
   for (const [key, value] of Object.entries(variables)) {
     const placeholder = `{{${key}}}`;
-    title = title.replace(new RegExp(placeholder, 'g'), String(value));
-    body = body.replace(new RegExp(placeholder, 'g'), String(value));
+    title = title.replaceAll(placeholder, String(value));
+    body = body.replaceAll(placeholder, String(value));
   }
 
   return { title, body };

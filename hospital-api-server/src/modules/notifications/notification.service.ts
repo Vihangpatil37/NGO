@@ -10,6 +10,7 @@ import {
 import { renderNotificationTemplate } from './notification.templates';
 import FcmService from './fcm.service';
 import { logger } from '../../utils/logger';
+import { SOCKET_EVENTS } from '../../infrastructure/socket/events';
 import QueueToken from '../../models/QueueToken';
 import Registration from '../../models/Registration';
 import Patient from '../../models/Patient';
@@ -124,7 +125,19 @@ export class NotificationService {
         try {
           if (payload.recipientUserId) {
             // Patient personalized room
-            io.to(`patient:${payload.recipientUserId}`).emit('notification:new', {
+            io.to(`patient:${payload.recipientUserId}`).emit(SOCKET_EVENTS.NOTIFICATION_NEW, {
+              _id: doc._id,
+              type: doc.type,
+              title,
+              body,
+              priority: doc.priority,
+              createdAt: doc.createdAt,
+              relatedEntities: doc.relatedEntities
+            });
+          }
+          if (payload.relatedEntities?.tokenId) {
+            // Emit to token room if applicable
+            io.to(`token:${payload.relatedEntities.tokenId}`).emit(SOCKET_EVENTS.NOTIFICATION_NEW, {
               _id: doc._id,
               type: doc.type,
               title,
@@ -135,7 +148,7 @@ export class NotificationService {
             });
           }
           if (payload.recipientScope === 'TODAY_PATIENTS' || payload.recipientScope === 'ALL_ACTIVE_USERS') {
-            io.emit('notification:broadcast', {
+            io.emit(SOCKET_EVENTS.NOTIFICATION_BROADCAST, {
               _id: doc._id,
               type: doc.type,
               title,
@@ -168,7 +181,7 @@ export class NotificationService {
           }
         );
 
-        const allOk = fcmRes.every(r => r.success);
+        const allOk = fcmRes.every((r: any) => r.success);
         doc.delivery.push.status = allOk ? 'provider_accepted' : 'failed';
       }
 
@@ -307,7 +320,7 @@ export class NotificationService {
       eventKey,
       titleKey: 'notifications.announcement.title',
       bodyKey: 'notifications.announcement.body',
-      variables: { customTitle: title, customMessage: message },
+      variables: { title, message },
       priority: 'high',
       createdBy: adminId,
       expiresAt

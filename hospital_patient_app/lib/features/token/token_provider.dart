@@ -6,6 +6,8 @@ import '../../core/socket/patient_socket_service.dart';
 import '../../core/models/token_status.dart';
 
 import '../../core/services/local_notification_service.dart';
+import '../../core/navigation/app_router.dart';
+import 'package:hospital_patient_app/l10n/app_localizations.dart';
 
 class TokenProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -23,24 +25,31 @@ class TokenProvider extends ChangeNotifier {
 
   TokenProvider();
 
-  Future<void> fetchStatus(String tokenId) async {
+  bool _isSocketConnected = false;
+
+  Future<void> fetchStatus(String tokenId, {bool silent = false}) async {
     _tokenId = tokenId;
-    _setLoading(true);
-    _clearError();
+    if (!silent) {
+      _setLoading(true);
+      _clearError();
+    }
 
     try {
       final data = await _apiService.getTokenStatus(tokenId);
       if (data['success'] == true && data['data'] != null) {
         _status = TokenStatus.fromJson(data['data']);
         notifyListeners();
-        _connectRealtime(tokenId);
+        if (!_isSocketConnected) {
+          _connectRealtime(tokenId);
+          _isSocketConnected = true;
+        }
       } else {
-        _setError('error_load_token');
+        if (!silent) _setError('error_load_token');
       }
     } catch (e) {
-      _setError(e.toString());
+      if (!silent) _setError(e.toString());
     } finally {
-      _setLoading(false);
+      if (!silent) _setLoading(false);
     }
   }
 
@@ -55,57 +64,33 @@ class TokenProvider extends ChangeNotifier {
   }
 
   void _handleTokenCalled(dynamic data) {
-    final tokenNum = data?['tokenNumber'] ?? _status?.tokenNumber;
-    _localNotifService.showNotification(
-      title: '🚨 YOUR TURN / તમારો વારો',
-      body: 'Token #$tokenNum has been called. Please proceed to the doctor\'s room immediately.',
-      priority: 'urgent',
-    );
-
     if (_tokenId != null) {
-      fetchStatus(_tokenId!);
+      fetchStatus(_tokenId!, silent: true);
     }
   }
 
   void _handleTurnNear(dynamic data) {
-    final tokenNum = data?['tokenNumber'] ?? _status?.tokenNumber;
-    final ahead = data?['patientsAhead'] ?? 3;
-    _localNotifService.showNotification(
-      title: '⏳ YOUR TURN IS NEAR / વારો નજીક છે',
-      body: 'Token #$tokenNum: Only $ahead patient(s) ahead. Please be ready near the OPD room.',
-      priority: 'high',
-    );
-
     if (_tokenId != null) {
-      fetchStatus(_tokenId!);
+      fetchStatus(_tokenId!, silent: true);
     }
   }
 
   void _handleNotification(dynamic data) {
-    final title = data?['renderedTitle'] ?? data?['title'] ?? 'ArogyaMitra Alert';
-    final body = data?['renderedBody'] ?? data?['message'] ?? '';
-    final priority = data?['priority'] ?? 'high';
-
-    _localNotifService.showNotification(
-      title: title,
-      body: body,
-      priority: priority,
-    );
-
     if (_tokenId != null) {
-      fetchStatus(_tokenId!);
+      fetchStatus(_tokenId!, silent: true);
     }
   }
 
   void _handleQueueUpdated(dynamic data) {
     if (_tokenId != null) {
       // Re-fetch to get accurate queue positions and state
-      fetchStatus(_tokenId!);
+      fetchStatus(_tokenId!, silent: true);
     }
   }
 
   Future<void> clearSession() async {
     _socketService.disconnect();
+    _isSocketConnected = false;
     final storage = await SessionStorage.getInstance();
     await storage.clearSession();
     _status = null;

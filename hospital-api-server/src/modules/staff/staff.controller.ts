@@ -8,6 +8,7 @@ import Doctor from '../../models/Doctor';
 import { DoctorService } from '../doctors/doctor.service';
 import env from '../../config/env';
 import { getRegistrationWindowId } from '../../middleware/validateRegistrationWindow';
+import { sendSuccess, sendError } from '../../utils/apiResponse';
 import { logger } from '../../utils/logger';
 import { notifyTokenStatusChange, notifyAdminNewToken } from '../../infrastructure/socket/notifier';
 import QueueService from '../tokens/queue.service';
@@ -23,10 +24,10 @@ export class StaffController {
     const { pin } = req.body;
     if (pin === '1234') {
       const token = jwt.sign({ role: 'admin' }, env.ADMIN_JWT_SECRET, { expiresIn: '8h' });
-      res.status(200).json({ token });
+      sendSuccess(res, { token });
       return;
     }
-    res.status(401).json({ error: 'Invalid PIN' });
+    sendError(res, 'Invalid PIN', 'UNAUTHORIZED', 401);
   }
 
   public static async getLiveQueue(req: Request, res: Response): Promise<void> {
@@ -42,10 +43,10 @@ export class StaffController {
           populate: { path: 'patientId' }
         });
 
-      res.status(200).json({ queue: tokens });
+      sendSuccess(res, { queue: tokens });
     } catch (error) {
       logger.error({ err: error }, 'getLiveQueue error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -53,7 +54,7 @@ export class StaffController {
     try {
       const token = await QueueToken.findById(tokenId);
       if (!token) {
-        res.status(404).json({ error: 'Token not found' });
+        sendError(res, 'Token not found', 'NOT_FOUND', 404);
         return;
       }
 
@@ -79,10 +80,10 @@ export class StaffController {
         ).catch(err => logger.error({ err }, 'Failed to dispatch TOKEN_CALLED notification'));
       }
 
-      res.status(200).json({ message: `Token marked as ${newStatus}`, token });
+      sendSuccess(res, { token }, `Token marked as ${newStatus}`);
     } catch (error) {
       logger.error({ err: error }, 'updateTokenStatus error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -97,7 +98,7 @@ export class StaffController {
       }).sort({ tokenNumber: 1 });
 
       if (!nextToken) {
-        res.status(404).json({ error: 'No active tokens in queue' });
+        sendError(res, 'No active tokens in queue', 'NOT_FOUND', 404);
         return;
       }
       targetTokenId = nextToken._id.toString();
@@ -151,10 +152,10 @@ export class StaffController {
         .populate('patientId')
         .sort({ createdAt: -1 });
 
-      res.status(200).json({ registrations });
+      sendSuccess(res, { registrations });
     } catch (error) {
       logger.error({ err: error }, 'getRegistrations error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -165,7 +166,7 @@ export class StaffController {
 
       const registration = await Registration.findById(id);
       if (!registration) {
-        res.status(404).json({ error: 'Registration not found' });
+        sendError(res, 'Registration not found', 'NOT_FOUND', 404);
         return;
       }
 
@@ -185,21 +186,22 @@ export class StaffController {
       }
 
       const updatedReg = await Registration.findById(id).populate('patientId');
-      res.status(200).json({ registration: updatedReg });
+      sendSuccess(res, { registration: updatedReg });
     } catch (err) {
       logger.error({ err }, 'updateRegistration error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
   public static async deleteRegistration(req: Request, res: Response): Promise<void> {
     try {
       const id = unwrapParam(req.params.id);
+      await QueueToken.deleteMany({ registrationId: id });
       await Registration.findByIdAndDelete(id);
-      res.status(200).json({ message: 'Deleted successfully' });
+      sendSuccess(res, {}, 'Deleted successfully');
     } catch (err) {
       logger.error({ err }, 'deleteRegistration error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -239,10 +241,10 @@ export class StaffController {
         lastVisitDate: visitData[p._id.toString()]?.lastVisitDate || p.createdAt
       }));
 
-      res.status(200).json({ patients: enrichedPatients });
+      sendSuccess(res, { patients: enrichedPatients });
     } catch (error) {
       logger.error({ err: error }, 'searchPatients error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -260,15 +262,10 @@ export class StaffController {
         createdAt: { $gte: startOfMonth }
       });
 
-      res.status(200).json({
-        totalPatients,
-        todaysRegistrations,
-        returningPatients,
-        newPatientsThisMonth
-      });
+      sendSuccess(res, { totalPatients, todaysRegistrations, returningPatients, newPatientsThisMonth });
     } catch (error) {
       logger.error({ err: error }, 'getPatientStats error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -277,7 +274,7 @@ export class StaffController {
       const id = unwrapParam(req.params.id);
       const patient = await Patient.findById(id).lean();
       if (!patient) {
-        res.status(404).json({ error: 'Patient not found' });
+        sendError(res, 'Patient not found', 'NOT_FOUND', 404);
         return;
       }
 
@@ -299,10 +296,10 @@ export class StaffController {
         };
       });
 
-      res.status(200).json({ patient, history });
+      sendSuccess(res, { patient, history });
     } catch (error) {
       logger.error({ err: error }, 'getPatientById error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -320,14 +317,14 @@ export class StaffController {
 
       const patient = await Patient.findByIdAndUpdate(id, updates, { new: true });
       if (!patient) {
-        res.status(404).json({ error: 'Patient not found' });
+        sendError(res, 'Patient not found', 'NOT_FOUND', 404);
         return;
       }
 
-      res.status(200).json({ message: 'Patient updated', patient });
+      sendSuccess(res, { patient }, 'Patient updated');
     } catch (error) {
       logger.error({ err: error }, 'updatePatient error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -336,7 +333,7 @@ export class StaffController {
       const id = unwrapParam(req.params.id);
       const patient = await Patient.findById(id);
       if (!patient) {
-        res.status(404).json({ error: 'Patient not found' });
+        sendError(res, 'Patient not found', 'NOT_FOUND', 404);
         return;
       }
 
@@ -345,7 +342,7 @@ export class StaffController {
       const { token, registration } = await QueueService.findActiveToken(patient._id.toString(), windowId);
 
       if (token && registration) {
-        res.status(409).json({ error: 'Patient is already registered for this window.' });
+        sendError(res, 'Patient is already registered for this window.', 'CONFLICT', 409);
         return;
       }
 
@@ -353,10 +350,10 @@ export class StaffController {
 
       await notifyAdminNewToken((req as any).io, result.registration, result.token);
 
-      res.status(201).json({ message: 'Re-registration successful', registration: result.registration, token: result.token });
+      sendSuccess(res, { registration: result.registration, token: result.token }, 'Re-registration successful', 201);
     } catch (error) {
       logger.error({ err: error }, 'registerAgain error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -385,10 +382,10 @@ export class StaffController {
           }
         }
       ]);
-      res.status(200).json({ success: true, data: doctors });
+      sendSuccess(res, { doctors });
     } catch (error) {
       logger.error({ err: error }, 'getDoctors error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -398,7 +395,7 @@ export class StaffController {
       
       const existing = await Doctor.findOne({ phoneNumber });
       if (existing) {
-        res.status(409).json({ success: false, error: { message: 'A doctor with this phone number already exists' } });
+        sendError(res, 'A doctor with this phone number already exists', 'CONFLICT', 409);
         return;
       }
 
@@ -414,10 +411,10 @@ export class StaffController {
 
       const doctorJson = doctor.toJSON();
 
-      res.status(201).json({ success: true, data: doctorJson });
+      sendSuccess(res, { doctor: doctorJson }, 'Doctor added successfully', 201);
     } catch (error) {
       logger.error({ err: error }, 'addDoctor error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -428,14 +425,14 @@ export class StaffController {
 
       const doctor = await Doctor.findById(id);
       if (!doctor) {
-        res.status(404).json({ success: false, error: { message: 'Doctor not found' } });
+        sendError(res, 'Doctor not found', 'NOT_FOUND', 404);
         return;
       }
 
       if (phoneNumber && phoneNumber !== doctor.phoneNumber) {
         const existing = await Doctor.findOne({ phoneNumber });
         if (existing) {
-          res.status(409).json({ success: false, error: { message: 'Phone number already in use by another doctor' } });
+          sendError(res, 'Phone number already in use by another doctor', 'CONFLICT', 409);
           return;
         }
         doctor.phoneNumber = phoneNumber;
@@ -451,10 +448,10 @@ export class StaffController {
       await doctor.save();
 
       const updated = await Doctor.findById(id);
-      res.status(200).json({ success: true, data: updated });
+      sendSuccess(res, { doctor: updated });
     } catch (error) {
       logger.error({ err: error }, 'updateDoctor error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -464,7 +461,7 @@ export class StaffController {
       
       const doctor = await Doctor.findById(id);
       if (!doctor) {
-        res.status(404).json({ success: false, error: { message: 'Doctor not found' } });
+        sendError(res, 'Doctor not found', 'NOT_FOUND', 404);
         return;
       }
 
@@ -475,10 +472,10 @@ export class StaffController {
       const DoctorAvailability = mongoose.model('DoctorAvailability');
       await DoctorAvailability.deleteMany({ doctorId: doctor._id });
 
-      res.status(200).json({ success: true, message: 'Doctor deleted successfully' });
+      sendSuccess(res, {}, 'Doctor deleted successfully');
     } catch (error) {
       logger.error({ err: error }, 'deleteDoctor error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 
@@ -488,23 +485,23 @@ export class StaffController {
       const { pin } = req.body;
 
       if (!pin) {
-        res.status(400).json({ success: false, error: { message: 'PIN is required' } });
+        sendError(res, 'PIN is required', 'BAD_REQUEST', 400);
         return;
       }
 
       const doctor = await Doctor.findById(id);
       if (!doctor) {
-        res.status(404).json({ success: false, error: { message: 'Doctor not found' } });
+        sendError(res, 'Doctor not found', 'NOT_FOUND', 404);
         return;
       }
 
       doctor.pinHash = await DoctorService.hashPassword(pin);
       await doctor.save();
 
-      res.status(200).json({ success: true, message: 'Doctor PIN updated successfully' });
+      sendSuccess(res, {}, 'Doctor PIN updated successfully');
     } catch (error) {
       logger.error({ err: error }, 'resetDoctorPin error');
-      res.status(500).json({ error: 'Internal server error' });
+      sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
     }
   }
 }

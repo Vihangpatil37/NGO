@@ -52,9 +52,6 @@ export const createApp = (): Express => {
   // Device Token Registration Routes (FCM endpoints matching spec)
   app.use('/api/v1/devices', deviceRoutes);
 
-  // Backwards compatibility for existing web portals
-  app.use('/api/registrations', patientRoutes);
-
   // 404 Handler
   app.use((req: Request, res: Response) => {
     res.status(404).json({

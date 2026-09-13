@@ -167,7 +167,7 @@ export class NotificationController {
       const notif = await NotificationService.onHospitalAnnouncement(
         io,
         announcementId,
-        scope || 'TODAY_PATIENTS',
+        'ALL_ACTIVE_USERS',
         title,
         message,
         adminId,

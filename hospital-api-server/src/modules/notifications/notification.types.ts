@@ -3,9 +3,7 @@ export type NotificationType =
   | 'TURN_NEAR'
   | 'TOKEN_CALLED'
   | 'HOSPITAL_ANNOUNCEMENT'
-  | 'DOCTOR_AVAILABLE'
   | 'DOCTOR_UNAVAILABLE'
-  | 'OPD_REMINDER'
   | 'OPD_CLOSED';
 
 export type NotificationPriority = 'normal' | 'high' | 'urgent';

@@ -40,7 +40,6 @@
 | **Real-time**       | Socket.IO 4                                              |
 | **Admin Dashboard** | Next.js 15, React 19, Tailwind CSS 4, Lucide React      |
 | **Patient App**     | Flutter (Dart ≥3.0), Provider, Dio, socket_io_client     |
-| **Background Jobs** | node-cron                                                |
 | **Logging**         | Pino + pino-pretty                                       |
 | **Auth**            | JWT (jsonwebtoken) + bcrypt (doctor PINs)                |
 | **Validation**      | Zod (backend), Flutter form validation (mobile)          |
@@ -60,7 +59,6 @@ graph TB
     subgraph Server["Backend Layer"]
         API["🖥️ Express 5 API Server<br/>(TypeScript)"]
         WS["⚡ Socket.IO Server"]
-        CRON["⏰ node-cron Jobs"]
     end
 
     DB[("🗄️ MongoDB")]
@@ -70,7 +68,6 @@ graph TB
     AD -- "REST API (fetch)" --> API
     AD -- "WebSocket" --> WS
     API -- "Mongoose" --> DB
-    CRON -- "Scheduled Tasks" --> DB
     API --- WS
 ```
 
@@ -626,7 +623,7 @@ Users can switch languages at any time via the language selector bottom sheet on
 ### Backend API
 Deploy to a **persistent server** that supports WebSocket connections:
 - ✅ **Railway**, **Render**, or **Fly.io**
-- ❌ **Vercel / Netlify** — These are serverless platforms and **cannot** maintain the persistent TCP connections required by Socket.IO or run continuous `node-cron` processes.
+- ❌ **Vercel / Netlify** — These are serverless platforms and **cannot** maintain the persistent TCP connections required by Socket.IO.
 
 ### Admin Dashboard
 - The Next.js admin app deploys seamlessly to **Vercel**.

@@ -7,5 +7,7 @@ const registrationSchema = new Schema<IRegistration>({
   status: { type: String, enum: ['registered', 'arrived', 'in_queue', 'in_consultation', 'completed', 'cancelled'], default: 'registered' }
 }, { timestamps: true });
 
+registrationSchema.index({ patientId: 1, registrationWindowId: 1 }, { unique: true });
+
 export const Registration = mongoose.model<IRegistration>('Registration', registrationSchema);
 export default Registration;

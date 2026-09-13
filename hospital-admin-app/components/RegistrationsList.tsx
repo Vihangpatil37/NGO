@@ -1,27 +1,26 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { getAllRegistrations } from '../lib/api';
 
 export default function RegistrationsList() {
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const fetchRegistrations = async () => {
-    try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const token = localStorage.getItem('adminToken');
-      const url = new URL(`${API_URL}/api/admin/registrations`);
-      if (search) url.searchParams.append('search', search);
+  // Debounce the search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search]);
 
-      const res = await fetch(url.toString(), {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.status === 401 && typeof window !== 'undefined') {
-          localStorage.removeItem('adminToken');
-          window.location.reload();
-      }
-      const data = await res.json();
+  const fetchRegistrations = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllRegistrations(debouncedSearch);
       setRegistrations(data.registrations || []);
     } catch (err) {
       console.error(err);
@@ -32,7 +31,7 @@ export default function RegistrationsList() {
 
   useEffect(() => {
     fetchRegistrations();
-  }, [search]);
+  }, [debouncedSearch]);
 
   return (
     <div className="p-4 space-y-4">
@@ -71,7 +70,7 @@ export default function RegistrationsList() {
                             <div className="text-right">
                                <p className="text-sm font-semibold text-[var(--ink-muted)] mb-1">Case ID</p>
                                <p className="font-mono bg-gray-50 px-3 py-1.5 rounded-md border border-gray-200 text-lg min-w-[80px] text-center">
-                                  {reg.caseType === 'old' ? reg.caseNumber : ' '}
+                                  {reg.patientId?.caseType === 'old' ? reg.patientId?.caseNumber : ' '}
                                </p>
                             </div>
                         </div>

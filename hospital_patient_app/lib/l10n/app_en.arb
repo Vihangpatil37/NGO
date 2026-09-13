@@ -76,6 +76,12 @@
   "faqCaseIdQuestion": "What is a Case ID (e.g. U-00001)?",
   "faqCaseIdAnswer": "Your Case ID is your permanent hospital registration number. Keep it safe for your follow-up visits so you do not need to register again.",
   "caseIdDisplay": "Case ID: {caseNumber} • {patientName}",
+  "notifRegistrationTitle": "✅ Registration Confirmed",
+  "notifRegistrationBody": "Your OPD Token is #{tokenNumber}. Please keep this token with you.",
+  "notifTurnNearTitle": "⏳ YOUR TURN IS NEAR",
+  "notifTurnNearBody": "Token #{tokenNumber}: Only {ahead} patient(s) ahead. Please be ready near the OPD room.",
+  "notifYourTurnTitle": "🚨 YOUR TURN",
+  "notifYourTurnBody": "Token #{tokenNumber} has been called. Please proceed to the doctor's room immediately.",
   "@caseIdDisplay": {
     "description": "Formatted case ID and patient name display",
     "placeholders": {

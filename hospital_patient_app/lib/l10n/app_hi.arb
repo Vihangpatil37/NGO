@@ -75,5 +75,11 @@
   "faqAppOpenAnswer": "यदि आप ऐप बंद भी कर देते हैं तो भी आपका टोकन सक्रिय रहता है। जब आप फिर से ऐप खोलेंगे, तो यह स्वचालित रूप से आपका वर्तमान टोकन नंबर और कतार की स्थिति दिखाएगा।",
   "faqCaseIdQuestion": "केस ID (उदा. U-00001) क्या है?",
   "faqCaseIdAnswer": "आपका केस ID आपका स्थायी अस्पताल पंजीकरण नंबर है। इसे अपनी अगली यात्राओं के लिए सुरक्षित रखें ताकि आपको फिर से पंजीकरण न कराना पड़े।",
-  "caseIdDisplay": "केस ID: {caseNumber} • {patientName}"
+  "caseIdDisplay": "केस ID: {caseNumber} • {patientName}",
+  "notifRegistrationTitle": "✅ पंजीकरण सफल",
+  "notifRegistrationBody": "आपका OPD टोकन #{tokenNumber} है। कृपया इस टोकन को अपने पास रखें।",
+  "notifTurnNearTitle": "⏳ आपकी बारी करीब है",
+  "notifTurnNearBody": "टोकन #{tokenNumber}: आपसे पहले केवल {ahead} मरीज़ हैं। कृपया OPD कक्ष के पास तैयार रहें।",
+  "notifYourTurnTitle": "🚨 आपकी बारी",
+  "notifYourTurnBody": "टोकन #{tokenNumber} पुकारा गया है। कृपया तुरंत डॉक्टर के कक्ष में जाएँ।"
 }

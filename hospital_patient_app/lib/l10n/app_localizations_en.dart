@@ -249,4 +249,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String caseIdDisplay(String caseNumber, String patientName) {
     return 'Case ID: $caseNumber • $patientName';
   }
+
+  @override
+  String get notifRegistrationTitle => '✅ Registration Confirmed';
+
+  @override
+  String notifRegistrationBody(Object tokenNumber) {
+    return 'Your OPD Token is #$tokenNumber. Please keep this token with you.';
+  }
+
+  @override
+  String get notifTurnNearTitle => '⏳ YOUR TURN IS NEAR';
+
+  @override
+  String notifTurnNearBody(Object ahead, Object tokenNumber) {
+    return 'Token #$tokenNumber: Only $ahead patient(s) ahead. Please be ready near the OPD room.';
+  }
+
+  @override
+  String get notifYourTurnTitle => '🚨 YOUR TURN';
+
+  @override
+  String notifYourTurnBody(Object tokenNumber) {
+    return 'Token #$tokenNumber has been called. Please proceed to the doctor\'s room immediately.';
+  }
 }

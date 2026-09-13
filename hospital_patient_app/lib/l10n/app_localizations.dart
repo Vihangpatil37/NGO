@@ -555,6 +555,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Case ID: {caseNumber} • {patientName}'**
   String caseIdDisplay(String caseNumber, String patientName);
+
+  /// No description provided for @notifRegistrationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Registration Confirmed'**
+  String get notifRegistrationTitle;
+
+  /// No description provided for @notifRegistrationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your OPD Token is #{tokenNumber}. Please keep this token with you.'**
+  String notifRegistrationBody(Object tokenNumber);
+
+  /// No description provided for @notifTurnNearTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'⏳ YOUR TURN IS NEAR'**
+  String get notifTurnNearTitle;
+
+  /// No description provided for @notifTurnNearBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Token #{tokenNumber}: Only {ahead} patient(s) ahead. Please be ready near the OPD room.'**
+  String notifTurnNearBody(Object ahead, Object tokenNumber);
+
+  /// No description provided for @notifYourTurnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'🚨 YOUR TURN'**
+  String get notifYourTurnTitle;
+
+  /// No description provided for @notifYourTurnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Token #{tokenNumber} has been called. Please proceed to the doctor\'s room immediately.'**
+  String notifYourTurnBody(Object tokenNumber);
 }
 
 class _AppLocalizationsDelegate

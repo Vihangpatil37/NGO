@@ -251,4 +251,28 @@ class AppLocalizationsHi extends AppLocalizations {
   String caseIdDisplay(String caseNumber, String patientName) {
     return 'केस ID: $caseNumber • $patientName';
   }
+
+  @override
+  String get notifRegistrationTitle => '✅ पंजीकरण सफल';
+
+  @override
+  String notifRegistrationBody(Object tokenNumber) {
+    return 'आपका OPD टोकन #$tokenNumber है। कृपया इस टोकन को अपने पास रखें।';
+  }
+
+  @override
+  String get notifTurnNearTitle => '⏳ आपकी बारी करीब है';
+
+  @override
+  String notifTurnNearBody(Object ahead, Object tokenNumber) {
+    return 'टोकन #$tokenNumber: आपसे पहले केवल $ahead मरीज़ हैं। कृपया OPD कक्ष के पास तैयार रहें।';
+  }
+
+  @override
+  String get notifYourTurnTitle => '🚨 आपकी बारी';
+
+  @override
+  String notifYourTurnBody(Object tokenNumber) {
+    return 'टोकन #$tokenNumber पुकारा गया है। कृपया तुरंत डॉक्टर के कक्ष में जाएँ।';
+  }
 }

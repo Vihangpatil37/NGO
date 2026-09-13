@@ -75,5 +75,11 @@
   "faqAppOpenAnswer": "જો તમે એપ બંધ કરો તો પણ તમારો ટોકન સક્રિય રહે છે. જ્યારે તમે ફરીથી એપ ખોલશો, ત્યારે તે આપમેળે તમારો વર્તમાન ટોકન નંબર અને કતારની પ્રગતિ બતાવશે.",
   "faqCaseIdQuestion": "કેસ ID (દા.ત. U-00001) શું છે?",
   "faqCaseIdAnswer": "તમારો કેસ ID એ તમારો કાયમી હોસ્પિટલ નોંધણી નંબર છે. તમારી આગળની મુલાકાતો માટે તેને સુરક્ષિત રાખો જેથી તમારે ફરીથી નોંધણી કરાવવાની જરૂર ન પડે.",
-  "caseIdDisplay": "કેસ ID: {caseNumber} • {patientName}"
+  "caseIdDisplay": "કેસ ID: {caseNumber} • {patientName}",
+  "notifRegistrationTitle": "✅ નોંધણી સફળ",
+  "notifRegistrationBody": "તમારો OPD ટોકન #{tokenNumber} છે. કૃપા કરીને આ ટોકન તમારી સાથે રાખો.",
+  "notifTurnNearTitle": "⏳ તમારો વારો નજીક છે",
+  "notifTurnNearBody": "ટોકન #{tokenNumber}: તમારી પહેલા ફક્ત {ahead} દર્દી(ઓ) છે. કૃપા કરીને OPD રૂમ પાસે તૈયાર રહો.",
+  "notifYourTurnTitle": "🚨 તમારો વારો",
+  "notifYourTurnBody": "ટોકન #{tokenNumber} બોલાવવામાં આવ્યો છે. કૃપા કરીને તરત જ ડૉક્ટરના રૂમમાં જાઓ."
 }

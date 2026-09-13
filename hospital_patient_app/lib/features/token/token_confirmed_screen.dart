@@ -30,9 +30,10 @@ class _TokenConfirmedScreenState extends State<TokenConfirmedScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final loc = AppLocalizations.of(context)!;
       LocalNotificationService().showNotification(
-        title: '✅ Registration Confirmed / નોંધણી સફળ',
-        body: 'Your OPD Token is #${widget.tokenNumber}. Please keep this token with you.',
+        title: loc.notifRegistrationTitle,
+        body: loc.notifRegistrationBody(widget.tokenNumber.toString()),
         priority: 'normal',
       );
     });

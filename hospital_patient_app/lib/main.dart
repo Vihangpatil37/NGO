@@ -9,9 +9,21 @@ import 'core/localization/locale_provider.dart';
 import 'features/doctor/doctor_provider.dart';
 import 'core/services/local_notification_service.dart';
 import 'core/services/global_notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint("Handling a background message: ${message.messageId}");
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase for Push Notifications
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   
   // Initialize local notifications service & create channels
   await LocalNotificationService().initialize();

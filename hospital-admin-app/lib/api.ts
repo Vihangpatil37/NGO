@@ -8,29 +8,33 @@ const getAuthHeaders = () => {
     };
 };
 
+const handleResponse = async (res: Response) => {
+    if (!res.ok) {
+        if (res.status === 401 && typeof window !== 'undefined') {
+            localStorage.removeItem('adminToken');
+            window.location.reload();
+        }
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || err.error || `HTTP error ${res.status}`);
+    }
+    const json = await res.json();
+    return json.success && json.data ? json.data : json;
+};
+
 export async function login(pin: string) {
     const res = await fetch(`${API_URL}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin })
     });
-    if (!res.ok) throw new Error('Login failed');
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function getLiveQueue() {
     const res = await fetch(`${API_URL}/api/admin/queue/live`, {
         headers: getAuthHeaders()
     });
-    if (!res.ok) {
-        if (res.status === 401 && typeof window !== 'undefined') {
-            localStorage.removeItem('adminToken');
-            window.location.reload();
-        }
-        const err = await res.text().catch(() => 'Unknown error');
-        throw new Error(`Failed to fetch queue: ${res.status} - ${err}`);
-    }
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function updateTokenAction(tokenId: string, action: 'call-next' | 'skip' | 'complete') {
@@ -38,45 +42,37 @@ export async function updateTokenAction(tokenId: string, action: 'call-next' | '
         method: 'POST',
         headers: getAuthHeaders()
     });
-    if (!res.ok) {
-        if (res.status === 401 && typeof window !== 'undefined') {
-            localStorage.removeItem('adminToken');
-            window.location.reload();
-        }
-        const err = await res.text().catch(() => 'Unknown error');
-        throw new Error(`Action ${action} failed: ${res.status} - ${err}`);
-    }
-    return res.json();
+    return handleResponse(res);
+}
+
+export async function getAllRegistrations(search: string = '') {
+    const url = new URL(`${API_URL}/api/admin/registrations`);
+    if (search) url.searchParams.append('search', search);
+    const res = await fetch(url.toString(), {
+        headers: getAuthHeaders()
+    });
+    return handleResponse(res);
 }
 
 export async function getPatients(query: string = '') {
     const res = await fetch(`${API_URL}/api/admin/patients?query=${encodeURIComponent(query)}`, {
         headers: getAuthHeaders()
     });
-    if (!res.ok) {
-        if (res.status === 401 && typeof window !== 'undefined') {
-            localStorage.removeItem('adminToken');
-            window.location.reload();
-        }
-        throw new Error('Failed to fetch patients');
-    }
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function getPatientStats() {
     const res = await fetch(`${API_URL}/api/admin/patients/stats`, {
         headers: getAuthHeaders()
     });
-    if (!res.ok) throw new Error('Failed to fetch patient stats');
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function getPatientById(id: string) {
     const res = await fetch(`${API_URL}/api/admin/patients/${id}`, {
         headers: getAuthHeaders()
     });
-    if (!res.ok) throw new Error('Failed to fetch patient details');
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function updatePatient(id: string, updates: any) {
@@ -85,8 +81,7 @@ export async function updatePatient(id: string, updates: any) {
         headers: getAuthHeaders(),
         body: JSON.stringify(updates)
     });
-    if (!res.ok) throw new Error('Failed to update patient');
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function registerPatientAgain(id: string) {
@@ -94,16 +89,14 @@ export async function registerPatientAgain(id: string) {
         method: 'POST',
         headers: getAuthHeaders()
     });
-    if (!res.ok) throw new Error('Failed to re-register patient');
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function getDoctors() {
     const res = await fetch(`${API_URL}/api/admin/doctors`, {
         headers: getAuthHeaders()
     });
-    if (!res.ok) throw new Error('Failed to fetch doctors');
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function addDoctor(doctorData: any) {
@@ -112,11 +105,7 @@ export async function addDoctor(doctorData: any) {
         headers: getAuthHeaders(),
         body: JSON.stringify(doctorData)
     });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error?.message || 'Failed to add doctor');
-    }
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function updateDoctor(id: string, updates: any) {
@@ -125,11 +114,7 @@ export async function updateDoctor(id: string, updates: any) {
         headers: getAuthHeaders(),
         body: JSON.stringify(updates)
     });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error?.message || 'Failed to update doctor');
-    }
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function deleteDoctor(id: string) {
@@ -137,11 +122,7 @@ export async function deleteDoctor(id: string) {
         method: 'DELETE',
         headers: getAuthHeaders()
     });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error?.message || 'Failed to delete doctor');
-    }
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function registerWalkInNew(data: { phoneNumber: string; name: string; villageName: string; age?: number }) {
@@ -150,9 +131,23 @@ export async function registerWalkInNew(data: { phoneNumber: string; name: strin
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error?.message || 'Failed to register new patient');
-    return json;
+    return handleResponse(res);
+}
+
+export async function getNotifications(limit: number = 20) {
+    const res = await fetch(`${API_URL}/api/v1/notifications?limit=${limit}`, {
+        headers: getAuthHeaders()
+    });
+    return handleResponse(res);
+}
+
+export async function broadcastAnnouncement(data: { title: string; message: string; scope: string }) {
+    const res = await fetch(`${API_URL}/api/v1/notifications/broadcast`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data)
+    });
+    return handleResponse(res);
 }
 
 export async function registerWalkInOld(data: { phoneNumber: string; caseNumber: string }) {
@@ -161,7 +156,5 @@ export async function registerWalkInOld(data: { phoneNumber: string; caseNumber:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error?.message || 'Failed to register returning patient');
-    return json;
+    return handleResponse(res);
 }

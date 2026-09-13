@@ -39,13 +39,7 @@ class LocalNotificationService {
       },
     );
 
-    // Check if app was launched via notification click
-    final launchDetails = await _notificationsPlugin.getNotificationAppLaunchDetails();
-    if (launchDetails != null && launchDetails.didNotificationLaunchApp) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        AppRouter.navigatorKey.currentState?.pushNamed(AppRouter.notifications);
-      });
-    }
+    // Note: App launch from notification is handled by main.dart via didLaunchFromNotification() and initialRoute.
 
     // Create Android Notification Channels
     final androidImplementation = _notificationsPlugin

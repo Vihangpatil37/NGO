@@ -13,3 +13,7 @@ export const updateDoctorSchema = z.object({
   phoneNumber: z.string().regex(/^\d{10}$/, 'Must be a valid 10-digit phone number').optional(),
   pin: z.string().regex(/^\d{6}$/, 'PIN must be exactly 6 digits').optional(),
 });
+
+export const resetDoctorPinSchema = z.object({
+  pin: z.string().regex(/^\d{6}$/, 'PIN must be exactly 6 digits'),
+});

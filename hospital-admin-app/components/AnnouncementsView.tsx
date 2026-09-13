@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 
+import { getNotifications, broadcastAnnouncement } from '../lib/api';
+
 export default function AnnouncementsView() {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
-  const [scope, setScope] = useState<'TODAY_PATIENTS' | 'ALL_ACTIVE_USERS'>('TODAY_PATIENTS');
   const [showConfirm, setShowConfirm] = useState(false);
   const [sending, setSending] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
@@ -13,11 +14,8 @@ export default function AnnouncementsView() {
 
   const loadHistory = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/v1/notifications?limit=20');
-      const data = await res.json();
-      if (data.success) {
-        setHistory(data.data.notifications || []);
-      }
+      const data = await getNotifications(20);
+      setHistory(data.notifications || []);
     } catch (_) {}
   };
 
@@ -29,32 +27,15 @@ export default function AnnouncementsView() {
     setSending(true);
     setStatusMsg('');
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await fetch('http://localhost:4000/api/v1/notifications/broadcast', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title,
-          message,
-          scope,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setStatusMsg('✅ Broadcast sent successfully to all ' + (scope === 'TODAY_PATIENTS' ? "Today's Patients" : 'Active Users') + '!');
-        setTitle('');
-        setMessage('');
-        setShowConfirm(false);
-        loadHistory();
-      } else {
-        setStatusMsg('❌ ' + (data.error?.message || 'Failed to send broadcast'));
-      }
+      await broadcastAnnouncement({ title, message, scope: 'ALL_ACTIVE_USERS' });
+      setStatusMsg('✅ Broadcast sent successfully to all Active Users!');
+      setTitle('');
+      setMessage('');
+      setShowConfirm(false);
+      loadHistory();
     } catch (e: any) {
-      setStatusMsg('❌ Network error sending broadcast: ' + e.message);
+      console.error('Broadcast error:', e);
+      setStatusMsg('❌ Unable to send announcement. Please check the details and try again.');
     } finally {
       setSending(false);
     }
@@ -79,25 +60,8 @@ export default function AnnouncementsView() {
             <label className="block text-xs font-semibold text-[var(--ink-muted)] uppercase mb-1">
               Target Audience (Recipient Scope)
             </label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 text-sm text-[var(--ink)] cursor-pointer">
-                <input
-                  type="radio"
-                  name="scope"
-                  checked={scope === 'TODAY_PATIENTS'}
-                  onChange={() => setScope('TODAY_PATIENTS')}
-                />
-                Today's Registered Patients
-              </label>
-              <label className="flex items-center gap-2 text-sm text-[var(--ink)] cursor-pointer">
-                <input
-                  type="radio"
-                  name="scope"
-                  checked={scope === 'ALL_ACTIVE_USERS'}
-                  onChange={() => setScope('ALL_ACTIVE_USERS')}
-                />
-                All Active App Users
-              </label>
+            <div className="flex items-center gap-2 text-sm text-[var(--ink)] cursor-not-allowed">
+              ◉ All App Users
             </div>
           </div>
 
@@ -144,7 +108,7 @@ export default function AnnouncementsView() {
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-gray-100 space-y-4">
             <h3 className="text-lg font-bold text-gray-900">⚠️ Confirm Hospital Broadcast</h3>
             <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs text-amber-900 space-y-1">
-              <p><strong>Audience:</strong> {scope === 'TODAY_PATIENTS' ? "Today's Patients" : 'All Active Users'}</p>
+              <p><strong>Audience:</strong> All Active Users</p>
               <p><strong>Title:</strong> {title}</p>
               <p><strong>Message:</strong> {message}</p>
             </div>
@@ -179,28 +143,34 @@ export default function AnnouncementsView() {
           <p className="text-xs text-[var(--ink-muted)]">No notifications dispatched yet.</p>
         ) : (
           <div className="space-y-2.5 max-h-[350px] overflow-y-auto pr-1">
-            {history.map((n) => (
-              <div
-                key={n._id}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl flex items-start justify-between text-xs"
-              >
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-teal-800 uppercase tracking-wider text-[10px] px-1.5 py-0.5 bg-teal-100 rounded">
-                      {n.type}
-                    </span>
-                    <span className="text-gray-400">
-                      {new Date(n.createdAt).toLocaleTimeString()}
-                    </span>
+            {history.map((n) => {
+              // Fix older N04 templates displaying {{message}}
+              const actualMessage = n.renderedBody === '{{message}}' || (n.renderedBody && n.renderedBody.includes('{{message}}'))
+                ? (n.variables?.customMessage || n.variables?.message || n.renderedBody)
+                : (n.renderedBody || n.bodyKey);
+                
+              const actualTitle = (n.renderedTitle === '📢 Hospital Notice' || (n.renderedTitle && n.renderedTitle.includes('{{title}}'))) 
+                ? `📢 ${n.variables?.customTitle || n.variables?.title || 'Hospital Notice'}` 
+                : (n.renderedTitle || n.titleKey);
+
+              const timeStr = new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+              return (
+                <div
+                  key={n._id}
+                  className="p-3 bg-gray-50 border border-gray-200 rounded-xl flex items-start justify-between text-xs"
+                >
+                  <div className="space-y-1">
+                    <p className="font-semibold text-gray-900">{actualTitle}</p>
+                    <p className="text-gray-400">{timeStr}</p>
+                    <p className="text-gray-600">{actualMessage}</p>
                   </div>
-                  <p className="font-semibold text-gray-900">{n.renderedTitle || n.titleKey}</p>
-                  <p className="text-gray-600">{n.renderedBody || n.bodyKey}</p>
+                  <span className="text-[10px] text-gray-500 font-mono bg-white px-1.5 py-0.5 border rounded capitalize">
+                    {n.delivery?.push?.status || 'stored'}
+                  </span>
                 </div>
-                <span className="text-[10px] text-gray-500 font-mono bg-white px-1.5 py-0.5 border rounded">
-                  {n.delivery?.push?.status || 'stored'}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

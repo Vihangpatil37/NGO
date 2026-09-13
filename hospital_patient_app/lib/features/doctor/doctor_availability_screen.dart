@@ -17,8 +17,16 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
   void initState() {
     super.initState();
     // Load availability after frame renders
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<DoctorProvider>(context, listen: false).loadAvailability();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = Provider.of<DoctorProvider>(context, listen: false);
+      if (!provider.isLoggedIn) {
+        final restored = await provider.restoreSession();
+        if (!restored && mounted) {
+          Navigator.pushNamedAndRemoveUntil(context, AppRouter.welcome, (r) => false);
+          return;
+        }
+      }
+      provider.loadAvailability();
     });
   }
 

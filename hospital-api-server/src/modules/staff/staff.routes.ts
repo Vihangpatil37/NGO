@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import StaffController from './staff.controller';
 import { adminAuth } from '../../middleware/auth';
+import { validate } from '../../middleware/validate';
+import { createDoctorSchema, updateDoctorSchema, resetDoctorPinSchema } from './staff.schemas';
 
 const router = Router();
 
@@ -29,11 +31,11 @@ router.patch('/patients/:id', StaffController.updatePatient);
 router.post('/patients/:id/register-again', StaffController.registerAgain);
 
 // Doctors
-router.get('/doctors/availability', StaffController.getDoctorsWithAvailability);
 router.get('/doctors', StaffController.getDoctorsWithAvailability);
-router.post('/doctors', StaffController.addDoctor);
-router.patch('/doctors/:id/pin', StaffController.resetDoctorPin);
-router.patch('/doctors/:id', StaffController.updateDoctor);
+router.get('/doctors/availability', StaffController.getDoctorsWithAvailability);
+router.post('/doctors', validate(createDoctorSchema), StaffController.addDoctor);
+router.patch('/doctors/:id/pin', validate(resetDoctorPinSchema), StaffController.resetDoctorPin);
+router.patch('/doctors/:id', validate(updateDoctorSchema), StaffController.updateDoctor);
 router.delete('/doctors/:id', StaffController.deleteDoctor);
 
 export default router;

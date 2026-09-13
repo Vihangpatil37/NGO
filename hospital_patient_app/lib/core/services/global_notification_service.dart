@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as socket_io;
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:io' show Platform;
 import '../constants/app_constants.dart';
 import '../storage/session_storage.dart';
+import '../network/api_service.dart';
 import 'local_notification_service.dart';
 
 /// Global service that keeps a persistent WebSocket connection to the hospital server
@@ -96,9 +99,78 @@ class GlobalNotificationService {
       }
     });
 
-
-
     _socket?.connect();
+    
+    await _setupFirebaseMessaging();
+  }
+
+  Future<void> _setupFirebaseMessaging() async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+      
+      // Request permission
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        debugPrint('[GlobalNotificationService] User granted permission for FCM');
+        
+        // Get token
+        final fcmToken = await messaging.getToken();
+        if (fcmToken != null) {
+          debugPrint('[GlobalNotificationService] FCM Token: $fcmToken');
+          await _registerTokenWithBackend(fcmToken);
+        }
+
+        // Listen for token refresh
+        messaging.onTokenRefresh.listen((fcmToken) {
+          _registerTokenWithBackend(fcmToken);
+        }).onError((err) {
+          debugPrint('[GlobalNotificationService] Error refreshing FCM token: $err');
+        });
+
+        // Listen for foreground messages
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+          debugPrint('[GlobalNotificationService] Received FCM message in foreground!');
+          
+          if (message.notification != null) {
+            _notifService.showNotification(
+              title: message.notification!.title ?? 'Hospital Alert',
+              body: message.notification!.body ?? '',
+              priority: 'high',
+            );
+          }
+        });
+      } else {
+        debugPrint('[GlobalNotificationService] User declined or has not accepted permission');
+      }
+    } catch (e) {
+      debugPrint('[GlobalNotificationService] Error setting up FCM: $e');
+    }
+  }
+
+  Future<void> _registerTokenWithBackend(String token) async {
+    try {
+      final storage = await SessionStorage.getInstance();
+      final patientId = storage.getPatientId();
+      
+      if (patientId != null && patientId.isNotEmpty) {
+        final platform = Platform.isAndroid ? 'android' : Platform.isIOS ? 'ios' : 'web';
+        final locale = storage.getLanguageCode(); // Fetch locale from storage
+        await ApiService().registerDeviceToken(
+          patientId: patientId,
+          token: token,
+          platform: platform,
+          locale: locale,
+        );
+        debugPrint('[GlobalNotificationService] Registered FCM token with backend');
+      }
+    } catch (e) {
+      debugPrint('[GlobalNotificationService] Failed to register token with backend: $e');
+    }
   }
 
   /// Sync active patient and token IDs to join room subscriptions

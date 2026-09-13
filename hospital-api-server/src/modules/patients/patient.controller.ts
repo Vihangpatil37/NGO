@@ -13,6 +13,11 @@ import QueueToken from '../../models/QueueToken';
 import Registration from '../../models/Registration';
 import NotificationService from '../notifications/notification.service';
 
+// Utility: escape special regex characters from user input
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export class PatientController {
   /**
    * Register a brand new patient and instantly issue a queue token.
@@ -104,7 +109,7 @@ export class PatientController {
 
       const patient = await Patient.findOne({
         phoneNumber,
-        caseNumber: { $regex: new RegExp(`^${caseNumber}$`, 'i') }
+        caseNumber: { $regex: new RegExp(`^${escapeRegex(caseNumber)}$`, 'i') }
       });
 
       if (!patient) {
@@ -129,7 +134,7 @@ export class PatientController {
 
       const patient = await Patient.findOne({
         phoneNumber,
-        caseNumber: { $regex: new RegExp(`^${caseNumber}$`, 'i') }
+        caseNumber: { $regex: new RegExp(`^${escapeRegex(caseNumber)}$`, 'i') }
       });
 
       if (!patient) {

@@ -6,6 +6,7 @@ import 'package:hospital_patient_app/core/constants/app_constants.dart';
 import 'package:hospital_patient_app/core/storage/session_storage.dart';
 import 'package:hospital_patient_app/core/localization/locale_provider.dart';
 import 'package:hospital_patient_app/features/token/token_provider.dart';
+import 'package:hospital_patient_app/core/navigation/app_router.dart';
 
 void main() {
   testWidgets('HospitalPatientApp renders welcome screen and hospital branding', (WidgetTester tester) async {
@@ -21,8 +22,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => TokenProvider()),
         ],
         child: const HospitalPatientApp(
-          initialRoute: '/',
-          initialTokenId: null,
+          initialRoute: AppRouter.splash,
         ),
       ),
     );

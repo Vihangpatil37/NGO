@@ -22,7 +22,7 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
       if (!provider.isLoggedIn) {
         final restored = await provider.restoreSession();
         if (!restored && mounted) {
-          Navigator.pushNamedAndRemoveUntil(context, AppRouter.welcome, (r) => false);
+          Navigator.pushNamedAndRemoveUntil(context, AppRouter.roleSelection, (r) => false);
           return;
         }
       }
@@ -55,7 +55,7 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
     if (mounted) {
       Navigator.pushNamedAndRemoveUntil(
         context,
-        AppRouter.welcome,
+        AppRouter.roleSelection,
         (route) => false,
       );
     }

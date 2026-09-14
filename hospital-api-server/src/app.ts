@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import env from './config/env';
+import patientAuthRoutes from './modules/patients/patient-auth.routes';
 import patientRoutes from './modules/patients/patient.routes';
 import staffRoutes from './modules/staff/staff.routes';
 import doctorRoutes from './modules/doctors/doctor.routes';
@@ -38,6 +39,7 @@ export const createApp = (): Express => {
   });
 
   // V1 API Routes (Target Flutter App & Clean Contract)
+  app.use('/api/v1/patient/auth', patientAuthRoutes);
   app.use('/api/v1/patient', patientRoutes);
 
   // Staff & Admin Routes

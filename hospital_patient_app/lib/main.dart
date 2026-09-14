@@ -7,6 +7,7 @@ import 'core/navigation/app_router.dart';
 import 'features/token/token_provider.dart';
 import 'core/localization/locale_provider.dart';
 import 'features/doctor/doctor_provider.dart';
+import 'features/patient_auth/auth_provider.dart';
 import 'core/services/local_notification_service.dart';
 import 'core/services/global_notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,7 +22,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase for Push Notifications
+  // Initialize Firebase for Push Notifications & Auth
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   
@@ -32,20 +33,17 @@ void main() async {
   await GlobalNotificationService().initialize();
 
   final storage = await SessionStorage.getInstance();
-  final hasSession = storage.hasActiveSession();
-  final activeTokenId = storage.getActiveTokenId();
-  final hasDoctorSession = storage.hasDoctorSession();
   final fromNotification = await LocalNotificationService().didLaunchFromNotification();
 
   String initialRoute;
   if (fromNotification) {
-    initialRoute = AppRouter.notifications;
-  } else if (hasDoctorSession) {
-    initialRoute = AppRouter.doctorAvailability;
-  } else if (hasSession && activeTokenId != null) {
-    initialRoute = AppRouter.myToken;
+    // If launched from a notification, maybe go straight there.
+    // However, they might not be authenticated. Let splash handle it,
+    // or just route them and let the screen fail gracefully.
+    // For now we'll route to splash so we can guarantee session validity.
+    initialRoute = AppRouter.splash;
   } else {
-    initialRoute = AppRouter.welcome;
+    initialRoute = AppRouter.splash;
   }
 
   runApp(
@@ -54,10 +52,10 @@ void main() async {
         ChangeNotifierProvider(create: (_) => LocaleProvider(storage)),
         ChangeNotifierProvider(create: (_) => TokenProvider()),
         ChangeNotifierProvider(create: (_) => DoctorProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: HospitalPatientApp(
         initialRoute: initialRoute,
-        initialTokenId: activeTokenId,
       ),
     ),
   );
@@ -65,12 +63,10 @@ void main() async {
 
 class HospitalPatientApp extends StatelessWidget {
   final String initialRoute;
-  final String? initialTokenId;
 
   const HospitalPatientApp({
     super.key,
     required this.initialRoute,
-    this.initialTokenId,
   });
 
   @override
@@ -79,27 +75,14 @@ class HospitalPatientApp extends StatelessWidget {
 
     return MaterialApp(
       navigatorKey: AppRouter.navigatorKey,
-      title: 'Hospital Token App',
+      title: 'ArogyaMitra',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       locale: localeProvider.locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      onGenerateRoute: AppRouter.generateRoute,
+      onGenerateRoute: AppRouter.onGenerateRoute,
       initialRoute: initialRoute,
-      onGenerateInitialRoutes: (initialRouteName) {
-        if (initialRouteName == AppRouter.myToken && initialTokenId != null) {
-          return [
-            AppRouter.generateRoute(
-              RouteSettings(
-                name: AppRouter.myToken,
-                arguments: {'tokenId': initialTokenId},
-              ),
-            ),
-          ];
-        }
-        return [AppRouter.generateRoute(RouteSettings(name: initialRouteName))];
-      },
     );
   }
 }

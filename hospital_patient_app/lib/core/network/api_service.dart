@@ -62,6 +62,21 @@ class ApiService {
     }
   }
 
+  /// Verify Firebase ID token
+  Future<Map<String, dynamic>> verifyFirebaseToken(String firebaseIdToken) async {
+    try {
+      final response = await _dio.post(
+        '$baseUrl/api/v1/patient/auth/firebase',
+        data: {
+          'firebaseIdToken': firebaseIdToken,
+        },
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw _parseError(e);
+    }
+  }
+
   /// Lookup returning patient by phone and Case ID (U-00000)
   Future<Map<String, dynamic>> lookupCase({
     required String phoneNumber,

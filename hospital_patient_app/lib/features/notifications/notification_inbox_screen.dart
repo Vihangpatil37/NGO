@@ -3,6 +3,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/network/api_service.dart';
 import '../../core/storage/session_storage.dart';
 import '../../core/services/local_notification_service.dart';
+import '../../shared/widgets/language_selector_sheet.dart';
 
 class NotificationInboxScreen extends StatefulWidget {
   const NotificationInboxScreen({super.key});
@@ -46,264 +47,181 @@ class _NotificationInboxScreenState extends State<NotificationInboxScreen> {
     }
   }
 
-  /// Refresh and remove/clear all notifications from the app & notification bar
-  Future<void> _refreshAndClearNotifications() async {
-    setState(() => _isLoading = true);
-    
-    // Cancel all system tray notifications
-    await _notifService.cancelAll();
-
-    // Clear all in-app notifications
-    if (mounted) {
-      setState(() {
-        _notifications.clear();
-        _isLoading = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✨ All notifications cleared and refreshed.'),
-          backgroundColor: AppColors.primary,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
+  Future<void> _markAsRead(String id) async {
+    // try {
+    //   await _apiService.markNotificationRead(id);
+    //   _loadNotifications(); // Reload to refresh list and badge
+    // } catch (_) {}
   }
 
-  Future<void> _markAsRead(String notifId, int index) async {
-    await _apiService.markNotificationAsRead(notifId);
-    if (mounted) {
-      setState(() {
-        _notifications[index]['readAt'] = DateTime.now().toIso8601String();
-      });
-    }
+  void _showLanguageSelector() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => const LanguageSelectorSheet(),
+    );
   }
 
   IconData _getIconForType(String type) {
     switch (type) {
-      case 'REGISTRATION_CONFIRMED':
-        return Icons.check_circle_outline_rounded;
-      case 'TURN_NEAR':
-        return Icons.access_time_filled_rounded;
       case 'TOKEN_CALLED':
-        return Icons.campaign_rounded;
       case 'HOSPITAL_ANNOUNCEMENT':
-        return Icons.info_outline_rounded;
-      case 'DOCTOR_UNAVAILABLE':
-        return Icons.event_busy_rounded;
-      case 'OPD_CLOSED':
-        return Icons.door_front_door_outlined;
+        return Icons.campaign;
+      case 'TURN_NEAR':
+        return Icons.event_available;
       default:
-        return Icons.notifications_active_outlined;
+        return Icons.info_outline;
     }
   }
 
-  Color _getColorForType(String type, String priority) {
-    if (priority == 'urgent') return AppColors.danger;
-    if (priority == 'high') return const Color(0xFFF57F17);
+  Color _getColorForType(String type) {
     switch (type) {
-      case 'REGISTRATION_CONFIRMED':
-        return AppColors.primary;
-      case 'TURN_NEAR':
-        return const Color(0xFFF57F17);
+      case 'HOSPITAL_ANNOUNCEMENT':
+        return AppColors.warning;
       case 'TOKEN_CALLED':
-        return AppColors.yourTurn;
+        return AppColors.error;
+      case 'TURN_NEAR':
+        return AppColors.primary;
       default:
-        return AppColors.primaryDark;
+        return AppColors.primary;
     }
+  }
+
+  Widget _buildNotificationCard(dynamic notif) {
+    final bool isRead = notif['isRead'] == true;
+    final String type = notif['type'] ?? 'GENERAL';
+    final String title = notif['title'] ?? 'Notification';
+    final String message = notif['message'] ?? '';
+    final String time = 'Just now'; // Ideally format notif['createdAt'] here
+
+    final iconColor = _getColorForType(type);
+    final iconBgColor = iconColor.withOpacity(0.1);
+
+    return InkWell(
+      onTap: () {
+        if (!isRead) _markAsRead(notif['_id']);
+      },
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.base),
+        decoration: BoxDecoration(
+          color: isRead ? AppColors.surface : AppColors.surfaceVariant,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: isRead ? AppColors.border : AppColors.primaryLight,
+            width: isRead ? 1.0 : 1.5,
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: Icon(_getIconForType(type), color: iconColor, size: 24),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: isRead ? FontWeight.w600 : FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        time,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                          color: isRead ? AppColors.textSecondary : AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    message,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isRead ? AppColors.textSecondary : AppColors.textPrimary,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (!isRead) ...[
+              const SizedBox(width: AppSpacing.sm),
+              const Align(
+                alignment: Alignment.center,
+                child: Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
+              ),
+            ]
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // If this screen is used inside PatientHomeShell, we don't want a scaffold back button.
+    // We assume it's used inside the bottom nav shell.
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false, // Hide back button for bottom nav usage
         title: const Text(
-          'Notifications & Alerts',
+          'Notifications',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: AppColors.primaryDark,
+            color: AppColors.textPrimary,
           ),
         ),
-        actions: [
-          if (_notifications.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete_sweep_rounded, color: AppColors.danger),
-              tooltip: 'Clear All Notifications',
-              onPressed: _refreshAndClearNotifications,
-            ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Refresh and Clear Notifications',
-            onPressed: _refreshAndClearNotifications,
-          ),
-        ],
+        centerTitle: false,
       ),
-      body: RefreshIndicator(
-        color: AppColors.primary,
-        onRefresh: _refreshAndClearNotifications,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-            : _notifications.isEmpty
-                ? Center(
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(32.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.notifications_none_rounded,
-                            size: 72,
-                            color: AppColors.textSecondary.withAlpha(100),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'No Notifications',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'You will receive real-time alerts for your token status, turn warnings, and hospital updates.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppColors.textSecondary,
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          OutlinedButton.icon(
-                            icon: const Icon(Icons.refresh_rounded),
-                            label: const Text('Refresh'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            onPressed: _refreshAndClearNotifications,
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : _notifications.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No notifications yet',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                  ),
+                )
+              : RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: _loadNotifications,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(AppSpacing.base),
                     itemCount: _notifications.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
                     itemBuilder: (context, index) {
-                      final item = _notifications[index];
-                      final isRead = item['readAt'] != null;
-                      final type = item['type'] ?? 'HOSPITAL_ANNOUNCEMENT';
-                      final priority = item['priority'] ?? 'normal';
-                      final color = _getColorForType(type, priority);
-                      final icon = _getIconForType(type);
-
-                      final title = item['renderedTitle'] ?? item['titleKey'] ?? 'Notice';
-                      final body = item['renderedBody'] ?? item['bodyKey'] ?? '';
-                      final notifId = item['_id']?.toString() ?? '';
-
-                      return Dismissible(
-                        key: Key(notifId.isNotEmpty ? notifId : 'notif_$index'),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20),
-                          decoration: BoxDecoration(
-                            color: AppColors.danger,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
-                        ),
-                        onDismissed: (_) {
-                          setState(() {
-                            _notifications.removeAt(index);
-                          });
-                        },
-                        child: InkWell(
-                          onTap: () {
-                            if (!isRead && notifId.isNotEmpty) {
-                              _markAsRead(notifId, index);
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isRead ? AppColors.surface : color.withAlpha(12),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isRead ? AppColors.border : color.withAlpha(80),
-                                width: isRead ? 1.0 : 1.8,
-                              ),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: color.withAlpha(25),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(icon, color: color, size: 24),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              title,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: isRead ? FontWeight.w600 : FontWeight.bold,
-                                                color: isRead ? AppColors.textPrimary : color,
-                                              ),
-                                            ),
-                                          ),
-                                          if (!isRead)
-                                            Container(
-                                              width: 8,
-                                              height: 8,
-                                              decoration: BoxDecoration(
-                                                color: color,
-                                                shape: BoxShape.circle,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        body,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: AppColors.textSecondary,
-                                          height: 1.35,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
+                      return _buildNotificationCard(_notifications[index]);
                     },
                   ),
-      ),
+                ),
     );
   }
 }

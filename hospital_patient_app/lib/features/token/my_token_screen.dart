@@ -61,9 +61,9 @@ class _MyTokenScreenState extends State<MyTokenScreen> {
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () {
                   if (Navigator.canPop(context)) {
-                    Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.welcome, (route) => false);
+                    Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.patientHome, (route) => false);
                   } else {
-                    Navigator.of(context).pushReplacementNamed(AppRouter.welcome);
+                    Navigator.of(context).pushReplacementNamed(AppRouter.patientHome);
                   }
                 },
               ),
@@ -108,9 +108,9 @@ class _MyTokenScreenState extends State<MyTokenScreen> {
               icon: const Icon(Icons.arrow_back),
               onPressed: () {
                 if (Navigator.canPop(context)) {
-                  Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.welcome, (route) => false);
+                  Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.patientHome, (route) => false);
                 } else {
-                  Navigator.of(context).pushReplacementNamed(AppRouter.welcome);
+                  Navigator.of(context).pushReplacementNamed(AppRouter.patientHome);
                 }
               },
             ),
@@ -282,7 +282,7 @@ class _MyTokenScreenState extends State<MyTokenScreen> {
               final dialogNavigator = Navigator.of(ctx);
               await provider.clearSession();
               dialogNavigator.pop();
-              navigator.pushNamedAndRemoveUntil(AppRouter.welcome, (route) => false);
+              navigator.pushNamedAndRemoveUntil(AppRouter.patientHome, (route) => false);
             },
             child: Text(AppLocalizations.of(context)!.exit),
           ),

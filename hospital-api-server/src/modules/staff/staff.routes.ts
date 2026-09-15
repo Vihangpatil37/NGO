@@ -10,11 +10,6 @@ router.post('/login', StaffController.login);
 // Protected staff routes
 router.use(adminAuth);
 
-// Live Queue Management
-router.get('/queue/live', StaffController.getLiveQueue);
-router.post('/queue/:tokenId/call-next', StaffController.callNext);
-router.post('/queue/:tokenId/skip', StaffController.skipToken);
-router.post('/queue/:tokenId/complete', StaffController.completeToken);
 
 // Registrations
 router.get('/registrations', StaffController.getRegistrations);

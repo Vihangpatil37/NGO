@@ -58,10 +58,7 @@ class _NewCaseScreenState extends State<NewCaseScreen> {
       );
 
       final data = response['data'] as Map<String, dynamic>;
-      final int tokenNumber = data['tokenNumber'];
       final String caseNumber = data['caseNumber'] ?? '';
-      final int queuePosition = data['queuePosition'] ?? 0;
-      final String tokenId = data['tokenId'] ?? '';
       final String sessionToken = data['sessionToken'] ?? '';
       final patient = data['patient'] as Map<String, dynamic>?;
       final String patientName = patient?['name'] ?? _nameController.text.trim();
@@ -71,8 +68,6 @@ class _NewCaseScreenState extends State<NewCaseScreen> {
       // Save session locally
       await storage.saveSession(
         sessionToken: sessionToken,
-        tokenId: tokenId,
-        tokenNumber: tokenNumber,
         caseNumber: caseNumber,
         patientName: patientName,
         patientId: patientId,
@@ -80,53 +75,21 @@ class _NewCaseScreenState extends State<NewCaseScreen> {
 
       if (!mounted) return;
 
-      // Navigate to Token Confirmed Screen (Section 8)
       Navigator.pushReplacementNamed(
         context,
-        AppRouter.tokenConfirmed,
+        AppRouter.registrationConfirmed,
         arguments: {
-          'tokenNumber': tokenNumber,
           'caseNumber': caseNumber,
-          'queuePosition': queuePosition,
-          'tokenId': tokenId,
           'patientName': patientName,
         },
       );
-    } on DuplicateTokenException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
-      _showDuplicateTokenDialog(context, e.tokenId, e.message);
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
       });
     }
-  }
-
-  void _showDuplicateTokenDialog(BuildContext context, String tokenId, String message) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Notice'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.of(context).pushReplacementNamed(
-                AppRouter.myToken,
-                arguments: {'tokenId': tokenId},
-              );
-            },
-            child: Text(AppLocalizations.of(context)!.viewMyToken),
-          ),
-        ],
-      ),
-    );
   }
 
   @override

@@ -14,30 +14,12 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  bool _hasActiveToken = false;
-  String? _activeTokenId;
-  int? _activeTokenNumber;
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _checkActiveSession();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       LocalNotificationService().requestPermission(context: context);
     });
-  }
-
-  Future<void> _checkActiveSession() async {
-    final storage = await SessionStorage.getInstance();
-    if (mounted) {
-      setState(() {
-        _hasActiveToken = storage.hasActiveSession();
-        _activeTokenId = storage.getActiveTokenId();
-        _activeTokenNumber = storage.getTokenNumber();
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -131,25 +113,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 36),
-
-                    if (!_isLoading && _hasActiveToken) ...[
-                      // Active Token Card
-                      _SelectionCard(
-                        iconEmoji: '🎟',
-                        title: AppLocalizations.of(context)!.myToken, // Using 'My Token' as title
-                        subtitle: 'Token #${_activeTokenNumber?.toString().padLeft(2, '0') ?? '--'}\nTap to view live status',
-                        color: AppColors.yourTurn, // Or another prominent color
-                        isProminent: true,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            AppRouter.myToken,
-                            arguments: {'tokenId': _activeTokenId},
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                    ],
 
                     // Option 1: New Case Card
                     _SelectionCard(

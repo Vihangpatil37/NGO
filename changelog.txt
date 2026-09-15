@@ -1,1 +1,2 @@
 - Update changelog with recent backend changes
+- Add notes on notification system updates

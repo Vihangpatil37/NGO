@@ -61,10 +61,7 @@ class _OldCaseScreenState extends State<OldCaseScreen> {
       );
 
       final data = response['data'] as Map<String, dynamic>;
-      final int tokenNumber = data['tokenNumber'];
       final String resolvedCaseNumber = data['caseNumber'] ?? caseNumber;
-      final int queuePosition = data['queuePosition'] ?? 0;
-      final String tokenId = data['tokenId'] ?? '';
       final String sessionToken = data['sessionToken'] ?? '';
       final patient = data['patient'] as Map<String, dynamic>?;
       final String patientName = patient?['name'] ?? 'Patient';
@@ -74,8 +71,6 @@ class _OldCaseScreenState extends State<OldCaseScreen> {
       // Save session
       await storage.saveSession(
         sessionToken: sessionToken,
-        tokenId: tokenId,
-        tokenNumber: tokenNumber,
         caseNumber: resolvedCaseNumber,
         patientName: patientName,
         patientId: patientId,
@@ -85,21 +80,12 @@ class _OldCaseScreenState extends State<OldCaseScreen> {
 
       Navigator.pushReplacementNamed(
         context,
-        AppRouter.tokenConfirmed,
+        AppRouter.registrationConfirmed,
         arguments: {
-          'tokenNumber': tokenNumber,
           'caseNumber': resolvedCaseNumber,
-          'queuePosition': queuePosition,
-          'tokenId': tokenId,
           'patientName': patientName,
         },
       );
-    } on DuplicateTokenException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
-      _showDuplicateTokenDialog(context, e.tokenId, e.message);
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -112,29 +98,6 @@ class _OldCaseScreenState extends State<OldCaseScreen> {
         }
       });
     }
-  }
-
-  void _showDuplicateTokenDialog(BuildContext context, String tokenId, String message) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Notice'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.of(context).pushReplacementNamed(
-                AppRouter.myToken,
-                arguments: {'tokenId': tokenId},
-              );
-            },
-            child: Text(AppLocalizations.of(context)!.viewMyToken),
-          ),
-        ],
-      ),
-    );
   }
 
   @override

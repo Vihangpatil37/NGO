@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import '../../features/onboarding/welcome_screen.dart';
 import '../../features/new_case/new_case_screen.dart';
 import '../../features/old_case/old_case_screen.dart';
-import '../../features/token/token_confirmed_screen.dart';
-import '../../features/token/my_token_screen.dart';
+import '../../features/registration/registration_confirmed_screen.dart';
 import '../../features/help/help_screen.dart';
 import '../../features/doctor/doctor_login_screen.dart';
 import '../../features/doctor/doctor_availability_screen.dart';
@@ -15,8 +14,7 @@ class AppRouter {
   static const String welcome = '/';
   static const String newCase = '/new-case';
   static const String oldCase = '/old-case';
-  static const String tokenConfirmed = '/token-confirmed';
-  static const String myToken = '/my-token';
+  static const String registrationConfirmed = '/registration-confirmed';
   static const String help = '/help';
   static const String doctorLogin = '/doctor-login';
   static const String doctorAvailability = '/doctor-availability';
@@ -32,23 +30,12 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const NewCaseScreen());
       case oldCase:
         return MaterialPageRoute(builder: (_) => const OldCaseScreen());
-      case tokenConfirmed:
+      case registrationConfirmed:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (_) => TokenConfirmedScreen(
-            tokenNumber: args?['tokenNumber'] ?? 0,
+          builder: (_) => RegistrationConfirmedScreen(
             caseNumber: args?['caseNumber'] ?? '',
-            queuePosition: args?['queuePosition'] ?? 0,
-            tokenId: args?['tokenId'] ?? '',
             patientName: args?['patientName'] ?? '',
-          ),
-        );
-      case myToken:
-        final args = settings.arguments as Map<String, dynamic>?;
-        final tokenId = args?['tokenId'] as String?;
-        return MaterialPageRoute(
-          builder: (_) => MyTokenScreen(
-            tokenId: tokenId ?? '', // Should always be provided
           ),
         );
       case help:

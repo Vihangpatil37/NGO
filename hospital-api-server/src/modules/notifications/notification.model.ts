@@ -15,13 +15,10 @@ export interface INotificationDocument extends Document {
   locale: string;
   priority: NotificationPriority;
   relatedEntities: {
-    tokenId?: Types.ObjectId;
-    tokenNumber?: number;
     registrationId?: Types.ObjectId;
     doctorId?: Types.ObjectId;
     doctorName?: string;
     registrationWindowId?: string;
-    patientsAhead?: number;
   };
   eventKey: string;
   delivery: {
@@ -51,8 +48,6 @@ const notificationSchema = new Schema<INotificationDocument>(
       type: String,
       enum: [
         'REGISTRATION_CONFIRMED',
-        'TURN_NEAR',
-        'TOKEN_CALLED',
         'HOSPITAL_ANNOUNCEMENT',
         'DOCTOR_UNAVAILABLE',
         'OPD_CLOSED'
@@ -78,13 +73,10 @@ const notificationSchema = new Schema<INotificationDocument>(
       default: 'normal'
     },
     relatedEntities: {
-      tokenId: { type: Schema.Types.ObjectId, ref: 'QueueToken' },
-      tokenNumber: { type: Number },
       registrationId: { type: Schema.Types.ObjectId, ref: 'Registration' },
       doctorId: { type: Schema.Types.ObjectId, ref: 'Doctor' },
       doctorName: { type: String },
-      registrationWindowId: { type: String },
-      patientsAhead: { type: Number }
+      registrationWindowId: { type: String }
     },
     eventKey: { type: String, required: true, unique: true },
     delivery: {

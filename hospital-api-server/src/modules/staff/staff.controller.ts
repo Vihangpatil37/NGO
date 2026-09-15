@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import { QueueToken } from '../../models/QueueToken';
 import { Registration } from '../../models/Registration';
 import { Patient } from '../../models/Patient';
 import Doctor from '../../models/Doctor';
@@ -9,8 +8,6 @@ import { DoctorService } from '../doctors/doctor.service';
 import env from '../../config/env';
 import { getRegistrationWindowId } from '../../middleware/validateRegistrationWindow';
 import { logger } from '../../utils/logger';
-import { notifyTokenStatusChange, notifyAdminNewToken } from '../../infrastructure/socket/notifier';
-import QueueService from '../tokens/queue.service';
 import NotificationService from '../notifications/notification.service';
 
 const unwrapParam = (param: string | string[] | undefined): string => {
@@ -29,93 +26,6 @@ export class StaffController {
     res.status(401).json({ error: 'Invalid PIN' });
   }
 
-  public static async getLiveQueue(req: Request, res: Response): Promise<void> {
-    try {
-      const windowId = getRegistrationWindowId();
-      const tokens = await QueueToken.find({
-        registrationWindowId: windowId,
-        status: { $in: ['active', 'called', 'in_consultation'] }
-      })
-        .sort({ tokenNumber: 1 })
-        .populate({
-          path: 'registrationId',
-          populate: { path: 'patientId' }
-        });
-
-      res.status(200).json({ queue: tokens });
-    } catch (error) {
-      logger.error({ err: error }, 'getLiveQueue error');
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  private static async updateTokenStatus(tokenId: string, newStatus: any, req: Request, res: Response): Promise<void> {
-    try {
-      const token = await QueueToken.findById(tokenId);
-      if (!token) {
-        res.status(404).json({ error: 'Token not found' });
-        return;
-      }
-
-      token.status = newStatus;
-      if (newStatus === 'called') token.calledAt = new Date();
-      if (newStatus === 'completed') {
-        token.completedAt = new Date();
-        await Registration.findByIdAndUpdate(token.registrationId, { status: 'completed' });
-      }
-
-      await token.save();
-
-      notifyTokenStatusChange((req as any).io, token, newStatus);
-
-      // Trigger N03 (TOKEN_CALLED) and evaluate N02 (TURN_NEAR)
-      if (newStatus === 'called' && token.patientId) {
-        NotificationService.onTokenCalled(
-          (req as any).io,
-          token.patientId.toString(),
-          token._id.toString(),
-          token.tokenNumber,
-          token.registrationWindowId
-        ).catch(err => logger.error({ err }, 'Failed to dispatch TOKEN_CALLED notification'));
-      }
-
-      res.status(200).json({ message: `Token marked as ${newStatus}`, token });
-    } catch (error) {
-      logger.error({ err: error }, 'updateTokenStatus error');
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  public static async callNext(req: Request, res: Response): Promise<void> {
-    let targetTokenId = unwrapParam(req.params.tokenId);
-
-    if (!targetTokenId || targetTokenId === 'next') {
-      const windowId = getRegistrationWindowId();
-      const nextToken = await QueueToken.findOne({
-        registrationWindowId: windowId,
-        status: 'active'
-      }).sort({ tokenNumber: 1 });
-
-      if (!nextToken) {
-        res.status(404).json({ error: 'No active tokens in queue' });
-        return;
-      }
-      targetTokenId = nextToken._id.toString();
-    }
-
-    return StaffController.updateTokenStatus(targetTokenId, 'called', req, res);
-  }
-
-  public static async skipToken(req: Request, res: Response): Promise<void> {
-    const tokenId = unwrapParam(req.params.tokenId);
-    return StaffController.updateTokenStatus(tokenId, 'skipped', req, res);
-  }
-
-  public static async completeToken(req: Request, res: Response): Promise<void> {
-    const tokenId = unwrapParam(req.params.tokenId);
-    return StaffController.updateTokenStatus(tokenId, 'completed', req, res);
-  }
-
   public static async getRegistrations(req: Request, res: Response): Promise<void> {
     try {
       const search = req.query.search ? String(req.query.search) : undefined;
@@ -124,7 +34,6 @@ export class StaffController {
       const window = req.query.window ? String(req.query.window) : undefined;
 
       let patientQuery: any = {};
-      if (type) patientQuery.caseType = type;
       if (search) {
         patientQuery.$or = [
           { name: { $regex: search, $options: 'i' } },
@@ -140,6 +49,7 @@ export class StaffController {
       }
 
       let regQuery: any = {};
+      if (type) regQuery.caseType = type;
       const targetWindow = (window as string) || getRegistrationWindowId();
       regQuery.registrationWindowId = targetWindow;
       if (status) regQuery.status = status;
@@ -281,23 +191,7 @@ export class StaffController {
         return;
       }
 
-      const registrations = await Registration.find({ patientId: id }).sort({ createdAt: -1 }).lean();
-      const regIds = registrations.map((r) => r._id);
-      const tokens = await QueueToken.find({ registrationId: { $in: regIds } }).lean();
-
-      const tokenMap = tokens.reduce((acc: any, t: any) => {
-        acc[t.registrationId.toString()] = t;
-        return acc;
-      }, {});
-
-      const history = registrations.map((reg: any) => {
-        const token = tokenMap[reg._id.toString()];
-        return {
-          ...reg,
-          tokenNumber: token ? token.tokenNumber : null,
-          queueStatus: token ? token.status : null
-        };
-      });
+      const history = await Registration.find({ patientId: id }).sort({ createdAt: -1 }).lean();
 
       res.status(200).json({ patient, history });
     } catch (error) {
@@ -342,18 +236,22 @@ export class StaffController {
 
       const windowId = getRegistrationWindowId();
 
-      const { token, registration } = await QueueService.findActiveToken(patient._id.toString(), windowId);
+      let registration = await Registration.findOne({ patientId: patient._id, registrationWindowId: windowId });
 
-      if (token && registration) {
+      if (registration) {
         res.status(409).json({ error: 'Patient is already registered for this window.' });
         return;
       }
 
-      const result = await QueueService.issueToken(patient._id.toString(), windowId);
+      registration = new Registration({
+        patientId: patient._id,
+        caseType: 'old',
+        registrationWindowId: windowId,
+        status: 'registered'
+      });
+      await registration.save();
 
-      await notifyAdminNewToken((req as any).io, result.registration, result.token);
-
-      res.status(201).json({ message: 'Re-registration successful', registration: result.registration, token: result.token });
+      res.status(201).json({ message: 'Re-registration successful', registration });
     } catch (error) {
       logger.error({ err: error }, 'registerAgain error');
       res.status(500).json({ error: 'Internal server error' });

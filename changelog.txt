@@ -3,3 +3,4 @@
 - Document removal of token modules
 - Update changelog for app routing modifications
 - Add details regarding patient screen updates
+- Finalize changelog for current sprint

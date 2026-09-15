@@ -109,39 +109,9 @@ class ApiService {
     } catch (_) {}
   }
 
-  /// Fetch latest live token status
-  Future<Map<String, dynamic>> getTokenStatus(String tokenId) async {
-    try {
-      final response = await _dio.get(
-        '/token',
-        queryParameters: {'tokenId': tokenId},
-      );
-      return response.data;
-    } on DioException catch (e) {
-      throw _parseError(e);
-    }
-  }
-
-  /// Public hospital queue overview
-  Future<Map<String, dynamic>> getHospitalStatus() async {
-    try {
-      final response = await _dio.get('/queue/status');
-      return response.data;
-    } on DioException catch (e) {
-      throw _parseError(e);
-    }
-  }
-
   String _parseError(DioException e) {
     if (e.response != null && e.response?.data != null) {
       final data = e.response!.data;
-      
-      if (e.response?.statusCode == 409 && data is Map && data['existing_token_id'] != null) {
-        throw DuplicateTokenException(
-          data['message'] ?? data['error']?.toString() ?? 'You already have an active token.',
-          data['existing_token_id'],
-        );
-      }
 
       if (data is Map && data['error'] != null) {
         if (data['error'] is Map && data['error']['message'] != null) {
@@ -303,14 +273,4 @@ class ApiService {
       },
     ));
   }
-}
-
-class DuplicateTokenException implements Exception {
-  final String message;
-  final String tokenId;
-  
-  DuplicateTokenException(this.message, this.tokenId);
-  
-  @override
-  String toString() => message;
 }

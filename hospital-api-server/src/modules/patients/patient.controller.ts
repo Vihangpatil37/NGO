@@ -112,17 +112,21 @@ export class PatientController {
     try {
       const { phoneNumber, caseNumber, preferredLanguage } = req.body;
 
-      const patient = await Patient.findOne({
+      let patient = await Patient.findOne({
         phoneNumber,
         caseNumber: { $regex: new RegExp(`^${caseNumber}$`, 'i') }
       });
 
       if (!patient) {
-        sendError(res, "We couldn't find this case. Please check your mobile number and Case ID.", 'CASE_NOT_FOUND', 404);
-        return;
-      }
-
-      if (preferredLanguage && ['gu', 'hi', 'en'].includes(preferredLanguage)) {
+        // Collect info even if not in DB, and create patient
+        patient = new Patient({
+          caseType: 'old',
+          phoneNumber,
+          caseNumber: caseNumber.toUpperCase(),
+          preferredLanguage: ['gu', 'hi', 'en'].includes(preferredLanguage) ? preferredLanguage : 'en'
+        });
+        await patient.save();
+      } else if (preferredLanguage && ['gu', 'hi', 'en'].includes(preferredLanguage)) {
         patient.preferredLanguage = preferredLanguage;
         await patient.save();
       }

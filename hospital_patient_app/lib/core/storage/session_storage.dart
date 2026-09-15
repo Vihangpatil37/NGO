@@ -17,15 +17,11 @@ class SessionStorage {
   // Session Token
   Future<void> saveSession({
     required String sessionToken,
-    required String tokenId,
-    required int tokenNumber,
     required String caseNumber,
     required String patientName,
     String? patientId,
   }) async {
     await _prefs?.setString(AppConstants.keySessionToken, sessionToken);
-    await _prefs?.setString(AppConstants.keyActiveTokenId, tokenId);
-    await _prefs?.setInt(AppConstants.keyTokenNumber, tokenNumber);
     await _prefs?.setString(AppConstants.keyCaseNumber, caseNumber);
     await _prefs?.setString(AppConstants.keyPatientName, patientName);
     if (patientId != null) {
@@ -35,21 +31,18 @@ class SessionStorage {
   }
 
   String? getSessionToken() => _prefs?.getString(AppConstants.keySessionToken);
-  String? getActiveTokenId() => _prefs?.getString(AppConstants.keyActiveTokenId);
-  int? getTokenNumber() => _prefs?.getInt(AppConstants.keyTokenNumber);
   String? getCaseNumber() => _prefs?.getString(AppConstants.keyCaseNumber);
   String? getPatientName() => _prefs?.getString(AppConstants.keyPatientName);
   String? getPatientId() => _prefs?.getString(AppConstants.keyPatientId);
 
   bool hasActiveSession() {
     final token = getSessionToken();
-    final tokenId = getActiveTokenId();
-    return token != null && token.isNotEmpty && tokenId != null && tokenId.isNotEmpty;
+    return token != null && token.isNotEmpty;
   }
 
   Future<void> clearSession() async {
     await _prefs?.remove(AppConstants.keySessionToken);
-    await _prefs?.remove(AppConstants.keyActiveTokenId);
+    await _prefs?.remove(AppConstants.keyActiveTokenId); // in case they were set
     await _prefs?.remove(AppConstants.keyTokenNumber);
     await _prefs?.remove(AppConstants.keyCaseNumber);
     await _prefs?.remove(AppConstants.keyPatientName);
@@ -62,6 +55,13 @@ class SessionStorage {
 
   Future<void> setLanguageCode(String code) async {
     await _prefs?.setString(AppConstants.keyLanguageCode, code);
+  }
+
+  // Notifications Cleared Timestamp
+  String? getNotificationsClearedAt() => _prefs?.getString('key_notifications_cleared_at');
+
+  Future<void> setNotificationsClearedAt(String iso8601String) async {
+    await _prefs?.setString('key_notifications_cleared_at', iso8601String);
   }
 
   // --- Doctor Session (isolated from patient session) ---

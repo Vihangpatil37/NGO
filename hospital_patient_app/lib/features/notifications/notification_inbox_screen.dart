@@ -31,7 +31,18 @@ class _NotificationInboxScreenState extends State<NotificationInboxScreen> {
       _patientId = storage.getPatientId();
 
       final res = await _apiService.getNotifications(patientId: _patientId);
-      final list = res['data']?['notifications'] ?? [];
+      var list = res['data']?['notifications'] ?? [];
+      
+      final clearedAtStr = storage.getNotificationsClearedAt();
+      final clearedAt = clearedAtStr != null ? DateTime.parse(clearedAtStr) : null;
+
+      if (clearedAt != null) {
+        list = list.where((n) {
+          if (n['createdAt'] == null) return true;
+          final dt = DateTime.tryParse(n['createdAt']);
+          return dt != null && dt.isAfter(clearedAt);
+        }).toList();
+      }
 
       if (mounted) {
         setState(() {
@@ -46,12 +57,15 @@ class _NotificationInboxScreenState extends State<NotificationInboxScreen> {
     }
   }
 
-  /// Refresh and remove/clear all notifications from the app & notification bar
-  Future<void> _refreshAndClearNotifications() async {
+  /// Remove/clear all notifications from the app & notification bar
+  Future<void> _clearAllNotifications() async {
     setState(() => _isLoading = true);
     
     // Cancel all system tray notifications
     await _notifService.cancelAll();
+
+    final storage = await SessionStorage.getInstance();
+    await storage.setNotificationsClearedAt(DateTime.now().toUtc().toIso8601String());
 
     // Clear all in-app notifications
     if (mounted) {
@@ -62,7 +76,7 @@ class _NotificationInboxScreenState extends State<NotificationInboxScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✨ All notifications cleared and refreshed.'),
+          content: Text('✨ All notifications cleared.'),
           backgroundColor: AppColors.primary,
           duration: Duration(seconds: 2),
         ),
@@ -131,18 +145,18 @@ class _NotificationInboxScreenState extends State<NotificationInboxScreen> {
             IconButton(
               icon: const Icon(Icons.delete_sweep_rounded, color: AppColors.danger),
               tooltip: 'Clear All Notifications',
-              onPressed: _refreshAndClearNotifications,
+              onPressed: _clearAllNotifications,
             ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Refresh and Clear Notifications',
-            onPressed: _refreshAndClearNotifications,
+            tooltip: 'Refresh Notifications',
+            onPressed: _loadNotifications,
           ),
         ],
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
-        onRefresh: _refreshAndClearNotifications,
+        onRefresh: _loadNotifications,
         child: _isLoading
             ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
             : _notifications.isEmpty
@@ -187,7 +201,7 @@ class _NotificationInboxScreenState extends State<NotificationInboxScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            onPressed: _refreshAndClearNotifications,
+                            onPressed: _loadNotifications,
                           ),
                         ],
                       ),

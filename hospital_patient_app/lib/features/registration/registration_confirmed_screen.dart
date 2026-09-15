@@ -1,26 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../core/navigation/app_router.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/utils/l10n.dart';
-import 'package:provider/provider.dart';
-import '../../features/onboarding/locale_provider.dart';
 
 class RegistrationConfirmedScreen extends StatelessWidget {
   final String caseNumber;
   final String patientName;
 
   const RegistrationConfirmedScreen({
-    Key? key,
+    super.key,
     required this.caseNumber,
     required this.patientName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    final loc = Provider.of<LocaleProvider>(context).loc;
-    
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -30,27 +24,27 @@ class RegistrationConfirmedScreen extends StatelessWidget {
             children: [
               const Icon(
                 Icons.check_circle_outline,
-                color: AppColors.success,
+                color: Colors.green,
                 size: 100,
               ),
               const SizedBox(height: 32),
               
-              Text(
+              const Text(
                 'Registration Successful!',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.ink,
+                  color: Colors.black87,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               
               Text(
-                '${loc.patientName}: $patientName',
+                'Patient Name: $patientName',
                 style: const TextStyle(
                   fontSize: 18,
-                  color: AppColors.inkMuted,
+                  color: Colors.black54,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -60,17 +54,17 @@ class RegistrationConfirmedScreen extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(vertical: 24),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Column(
                   children: [
-                    Text(
-                      loc.caseId,
-                      style: const TextStyle(
+                    const Text(
+                      'Case ID',
+                      style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.inkLight,
+                        color: Colors.grey,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -80,7 +74,7 @@ class RegistrationConfirmedScreen extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: Colors.teal,
                         letterSpacing: 2,
                       ),
                     ),
@@ -100,7 +94,7 @@ class RegistrationConfirmedScreen extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: Text('Done'),
+                child: const Text('Done'),
               ),
             ],
           ),

@@ -110,6 +110,10 @@ class ApiService {
   }
 
   String _parseError(DioException e) {
+    print('DioError Type: ${e.type}');
+    print('DioError Message: ${e.message}');
+    print('DioError URI: ${e.requestOptions.uri}');
+    
     if (e.response != null && e.response?.data != null) {
       final data = e.response!.data;
 

@@ -7,7 +7,7 @@ class AppConstants {
   // Wi-Fi LAN IP for physical device: 192.168.1.239, for Android emulator: 10.0.2.2
   static const String defaultApiUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://192.168.1.10:4000',
+    defaultValue: 'http://10.0.2.2:4000',
   );
   static const String apiBasePath = '/api/v1/patient';
 

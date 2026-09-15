@@ -108,13 +108,9 @@ class GlobalNotificationService {
     try {
       final storage = await SessionStorage.getInstance();
       final patientId = storage.getPatientId();
-      final tokenId = storage.getActiveTokenId();
 
       if (patientId != null && patientId.isNotEmpty) {
         _socket?.emit('join:patient', {'patientId': patientId});
-      }
-      if (tokenId != null && tokenId.isNotEmpty) {
-        _socket?.emit('join:token', {'tokenId': tokenId});
       }
     } catch (e) {
       debugPrint('[GlobalNotificationService] Error syncing rooms: $e');

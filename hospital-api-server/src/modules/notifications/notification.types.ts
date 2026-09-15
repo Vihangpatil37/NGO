@@ -1,7 +1,5 @@
 export type NotificationType =
   | 'REGISTRATION_CONFIRMED'
-  | 'TURN_NEAR'
-  | 'TOKEN_CALLED'
   | 'HOSPITAL_ANNOUNCEMENT'
   | 'DOCTOR_AVAILABLE'
   | 'DOCTOR_UNAVAILABLE'
@@ -41,13 +39,10 @@ export interface INotificationPayload {
   locale?: string;
   priority?: NotificationPriority;
   relatedEntities?: {
-    tokenId?: string;
-    tokenNumber?: number;
     registrationId?: string;
     doctorId?: string;
     doctorName?: string;
     registrationWindowId?: string;
-    patientsAhead?: number;
   };
   createdBy?: string;
   expiresAt?: Date | null;

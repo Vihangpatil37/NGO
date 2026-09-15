@@ -78,6 +78,7 @@ export default function PatientDetails({ patient, history, onBack, onEdit }: Pat
                                     <div className="text-right">
                                         <span className="block text-xs font-semibold text-[var(--ink-light)]">Status</span>
                                         <span className="text-sm font-medium capitalize">{visit.status}</span>
+                                    </div>
                                 </div>
                             </div>
                         ))

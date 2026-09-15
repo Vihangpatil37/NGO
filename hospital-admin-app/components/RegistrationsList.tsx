@@ -45,13 +45,13 @@ export default function RegistrationsList() {
         <div className="flex gap-2 bg-[var(--surface)] p-1 rounded-lg w-fit border border-[var(--border)]">
           <button 
             onClick={() => setCaseTypeTab('new')} 
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${caseTypeTab === 'new' ? 'bg-[var(--primary)] text-white' : 'text-[var(--ink-muted)] hover:bg-gray-50'}`}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${caseTypeTab === 'new' ? 'bg-accent text-white shadow-sm' : 'text-[var(--ink-muted)] hover:bg-gray-50'}`}
           >
             New Cases
           </button>
           <button 
             onClick={() => setCaseTypeTab('old')} 
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${caseTypeTab === 'old' ? 'bg-[var(--primary)] text-white' : 'text-[var(--ink-muted)] hover:bg-gray-50'}`}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${caseTypeTab === 'old' ? 'bg-accent text-white shadow-sm' : 'text-[var(--ink-muted)] hover:bg-gray-50'}`}
           >
             Old Cases
           </button>

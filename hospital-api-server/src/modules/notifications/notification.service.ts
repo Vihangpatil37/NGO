@@ -10,7 +10,6 @@ import {
 import { renderNotificationTemplate } from './notification.templates';
 import FcmService from './fcm.service';
 import { logger } from '../../utils/logger';
-import QueueToken from '../../models/QueueToken';
 import Registration from '../../models/Registration';
 import Patient from '../../models/Patient';
 
@@ -212,84 +211,6 @@ export class NotificationService {
     });
   }
 
-  // --- N02: Turn Near ---
-  public static async evaluateTurnNearForQueue(io: any, windowId: string, currentCalledTokenNumber: number, threshold: number = 3) {
-    try {
-      // Find active tokens in queue ahead of current called
-      const candidateTokens = await QueueToken.find({
-        registrationWindowId: windowId,
-        status: 'active',
-        tokenNumber: { $gt: currentCalledTokenNumber }
-      }).sort({ tokenNumber: 1 }).limit(threshold);
-
-      for (const t of candidateTokens) {
-        // Calculate exact patients ahead
-        const patientsAhead = await QueueToken.countDocuments({
-          registrationWindowId: windowId,
-          status: 'active',
-          tokenNumber: { $lt: t.tokenNumber }
-        });
-
-        if (patientsAhead <= threshold && patientsAhead > 0) {
-          const eventKey = `TURN_NEAR:${t._id}`;
-          // Check if already dispatched
-          const exists = await Notification.findOne({ eventKey });
-          if (!exists && t.patientId) {
-            await NotificationService.dispatch(io, {
-              type: 'TURN_NEAR',
-              recipientUserId: t.patientId.toString(),
-              recipientScope: 'USER',
-              eventKey,
-              titleKey: 'notifications.turnNear.title',
-              bodyKey: 'notifications.turnNear.body',
-              variables: { tokenNumber: t.tokenNumber, patientsAhead },
-              priority: 'high',
-              relatedEntities: {
-                tokenId: t._id.toString(),
-                tokenNumber: t.tokenNumber,
-                registrationWindowId: windowId,
-                patientsAhead
-              }
-            });
-          }
-        }
-      }
-    } catch (err) {
-      logger.error({ err }, '[NotificationService] Error evaluating Turn Near notifications');
-    }
-  }
-
-  // --- N03: Token Called ---
-  public static async onTokenCalled(
-    io: any,
-    patientId: string,
-    tokenId: string,
-    tokenNumber: number,
-    registrationWindowId: string,
-    room: string = 'Doctor Room 1'
-  ) {
-    const eventKey = `TOKEN_CALLED:${tokenId}`;
-    const notif = await NotificationService.dispatch(io, {
-      type: 'TOKEN_CALLED',
-      recipientUserId: patientId,
-      recipientScope: 'USER',
-      eventKey,
-      titleKey: 'notifications.tokenCalled.title',
-      bodyKey: 'notifications.tokenCalled.body',
-      variables: { tokenNumber, room },
-      priority: 'urgent',
-      relatedEntities: {
-        tokenId,
-        tokenNumber,
-        registrationWindowId
-      }
-    });
-
-    // Check Turn Near for upcoming patients in queue
-    await NotificationService.evaluateTurnNearForQueue(io, registrationWindowId, tokenNumber);
-    return notif;
-  }
-
   // --- N04: Hospital Announcement ---
   public static async onHospitalAnnouncement(
     io: any,
@@ -324,15 +245,15 @@ export class NotificationService {
   ) {
     try {
       // Find affected active registrations for today's OPD
-      const activeTokens = await QueueToken.find({
+      const activeRegistrations = await Registration.find({
         registrationWindowId,
-        status: { $in: ['active', 'called'] }
+        status: { $in: ['registered', 'arrived'] }
       }).populate('patientId');
 
-      for (const t of activeTokens) {
-        if (!t.patientId) continue;
-        const patientId = (t.patientId as any)._id?.toString() || t.patientId.toString();
-        const eventKey = `DOCTOR_UNAVAILABLE:${doctorId}:${date}:${t._id}`;
+      for (const r of activeRegistrations) {
+        if (!r.patientId) continue;
+        const patientId = (r.patientId as any)._id?.toString() || r.patientId.toString();
+        const eventKey = `DOCTOR_UNAVAILABLE:${doctorId}:${date}:${r._id}`;
 
         await NotificationService.dispatch(io, {
           type: 'DOCTOR_UNAVAILABLE',
@@ -346,8 +267,6 @@ export class NotificationService {
           relatedEntities: {
             doctorId,
             doctorName,
-            tokenId: t._id.toString(),
-            tokenNumber: t.tokenNumber,
             registrationWindowId
           }
         });

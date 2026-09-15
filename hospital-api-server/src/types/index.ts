@@ -1,7 +1,6 @@
 import { Document, Types } from 'mongoose';
 
 export type CaseType = 'new' | 'old';
-export type QueueStatus = 'active' | 'called' | 'in_consultation' | 'completed' | 'skipped' | 'cancelled';
 
 export interface IPatient extends Document {
   _id: Types.ObjectId;
@@ -19,22 +18,9 @@ export interface IPatient extends Document {
 export interface IRegistration extends Document {
   _id: Types.ObjectId;
   patientId: Types.ObjectId | IPatient;
+  caseType: CaseType;
   registrationWindowId: string;
-  status: 'registered' | 'arrived' | 'in_queue' | 'in_consultation' | 'completed' | 'cancelled';
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface IQueueToken extends Document {
-  _id: Types.ObjectId;
-  registrationId: Types.ObjectId | IRegistration;
-  patientId?: Types.ObjectId | IPatient;
-  tokenNumber: number;
-  registrationWindowId: string;
-  departmentId?: string;
-  status: QueueStatus;
-  calledAt?: Date | null;
-  completedAt?: Date | null;
+  status: 'registered' | 'arrived' | 'in_consultation' | 'completed' | 'cancelled';
   createdAt: Date;
   updatedAt: Date;
 }

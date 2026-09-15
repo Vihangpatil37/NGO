@@ -5,14 +5,8 @@ export const SOCKET_EVENTS = {
 
   // Server -> Client (Admin Room)
   REGISTRATION_CREATED: 'registration:created',
-  QUEUE_NEW_TOKEN: 'queue:new-token',
-  QUEUE_UPDATED: 'queue:updated',
-  QUEUE_PAUSED: 'queue:paused',
+  QUEUE_PAUSED: 'queue:paused', // leaving this just in case
 
   // Server -> Client (Patient Room / Global)
-  TOKEN_CALLED: 'token:called',
-  TOKEN_POSITION_UPDATE: 'token:position-update',
-  TOKEN_COMPLETED: 'token:completed',
-  TOKEN_CANCELLED: 'token:cancelled',
-  TOKEN_SKIPPED: 'token:skipped'
+  // removed token events
 };

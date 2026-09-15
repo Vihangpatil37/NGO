@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { login } from '../lib/api';
-import QueueBoard from '../components/QueueBoard';
 import RegistrationsList from '../components/RegistrationsList';
 import PatientsView from '../components/PatientsView';
 import DoctorsView from '../components/DoctorsView';
@@ -12,7 +11,7 @@ export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'queue' | 'registrations' | 'patients' | 'doctors' | 'announcements'>('queue');
+  const [activeTab, setActiveTab] = useState<'registrations' | 'patients' | 'doctors' | 'announcements'>('registrations');
   const [globalSearch, setGlobalSearch] = useState('');
   const [searchTriggered, setSearchTriggered] = useState('');
 
@@ -104,12 +103,6 @@ export default function AdminDashboard() {
         </header>
         <div className="bg-[var(--surface)] border-b border-[var(--border)] flex overflow-x-auto">
            <button 
-             onClick={() => setActiveTab('queue')}
-             className={`flex-1 min-w-[100px] py-3 text-center font-medium text-sm transition-colors ${activeTab === 'queue' ? 'border-b-2 border-[var(--ink)] text-[var(--ink)]' : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'}`}
-           >
-             Live Queue
-           </button>
-           <button 
              onClick={() => setActiveTab('registrations')}
              className={`flex-1 min-w-[100px] py-3 text-center font-medium text-sm transition-colors ${activeTab === 'registrations' ? 'border-b-2 border-[var(--ink)] text-[var(--ink)]' : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'}`}
            >
@@ -135,7 +128,6 @@ export default function AdminDashboard() {
            </button>
         </div>
 
-        {activeTab === 'queue' && <QueueBoard />}
         {activeTab === 'registrations' && <RegistrationsList />}
         {activeTab === 'patients' && <PatientsView searchQuery={searchTriggered} />}
         {activeTab === 'doctors' && <DoctorsView />}

@@ -2,3 +2,4 @@
 - Add notes on notification system updates
 - Document removal of token modules
 - Update changelog for app routing modifications
+- Add details regarding patient screen updates

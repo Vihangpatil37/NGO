@@ -109,7 +109,7 @@ export default function PatientsView({ searchQuery }: { searchQuery: string }) {
         if (!confirm('Are you sure you want to re-register this patient for the current window?')) return;
         try {
             await registerPatientAgain(id);
-            alert('Patient re-registered successfully! Token has been generated.');
+            alert('Patient re-registered successfully!');
             fetchData();
         } catch (err: any) {
             alert(err.message || 'Failed to re-register patient');

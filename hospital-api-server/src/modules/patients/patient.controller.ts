@@ -19,8 +19,17 @@ export class PatientController {
    */
   public static async registerNewCase(req: Request, res: Response): Promise<void> {
     try {
-      const { name, villageName, phoneNumber, age } = req.body;
+      console.log('New case payload:', req.body);
+      const { name, villageName, phoneNumber, age, deviceId } = req.body;
       const windowId = getRegistrationWindowId();
+
+      if (deviceId) {
+        const count = await Registration.countDocuments({ deviceId, registrationWindowId: windowId });
+        if (count >= 2) {
+          sendError(res, 'This device has reached the maximum limit of 2 registrations for today. Please visit the reception for further assistance.', 'DEVICE_LIMIT_REACHED', 429);
+          return;
+        }
+      }
 
       let patient = await Patient.findOne({ phoneNumber });
 
@@ -38,6 +47,10 @@ export class PatientController {
         patient.name = name;
         patient.villageName = villageName;
         if (age !== undefined) patient.age = age;
+        
+        if (!patient.caseNumber) {
+          patient.caseNumber = await TokenService.getNextCaseNumber();
+        }
       }
       await patient.save();
 
@@ -60,7 +73,7 @@ export class PatientController {
         return;
       }
 
-      const result = await QueueService.issueToken(patient._id.toString(), windowId);
+      const result = await QueueService.issueToken(patient._id.toString(), windowId, deviceId);
       const queuePosition = await QueueService.getQueuePosition(windowId, result.tokenNumber);
       const sessionToken = issueSessionToken(patient._id, result.token._id, result.registration._id);
 
@@ -112,7 +125,16 @@ export class PatientController {
    */
   public static async registerOldCase(req: Request, res: Response): Promise<void> {
     try {
-      const { phoneNumber, caseNumber } = req.body;
+      const { phoneNumber, caseNumber, deviceId } = req.body;
+      const windowId = getRegistrationWindowId();
+
+      if (deviceId) {
+        const count = await Registration.countDocuments({ deviceId, registrationWindowId: windowId });
+        if (count >= 2) {
+          sendError(res, 'This device has reached the maximum limit of 2 registrations for today. Please visit the reception for further assistance.', 'DEVICE_LIMIT_REACHED', 429);
+          return;
+        }
+      }
 
       const patient = await Patient.findOne({
         phoneNumber,
@@ -124,7 +146,6 @@ export class PatientController {
         return;
       }
 
-      const windowId = getRegistrationWindowId();
       const { token, registration } = await QueueService.findActiveToken(patient._id.toString(), windowId);
 
       if (token && registration) {
@@ -144,7 +165,7 @@ export class PatientController {
         return;
       }
 
-      const result = await QueueService.issueToken(patient._id.toString(), windowId);
+      const result = await QueueService.issueToken(patient._id.toString(), windowId, deviceId);
       const queuePosition = await QueueService.getQueuePosition(windowId, result.tokenNumber);
       const sessionToken = issueSessionToken(patient._id, result.token._id, result.registration._id);
 

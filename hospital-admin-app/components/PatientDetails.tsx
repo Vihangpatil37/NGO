@@ -81,12 +81,6 @@ export default function PatientDetails({ patient, history, onBack, onEdit }: Pat
                                         <span className="block text-xs font-semibold text-[var(--ink-light)]">Status</span>
                                         <span className="text-sm font-medium capitalize">{visit.status}</span>
                                     </div>
-                                    {visit.tokenNumber && (
-                                        <div className="bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-1 flex flex-col items-center justify-center min-w-[3rem]">
-                                            <span className="text-xs text-[var(--ink-muted)]">Token</span>
-                                            <span className="font-bold font-mono text-[var(--ink)]">{visit.tokenNumber}</span>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         ))

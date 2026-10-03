@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/navigation/app_router.dart';
+import '../../shared/widgets/gradient_header.dart';
+import '../../shared/widgets/primary_button.dart';
+import '../../shared/widgets/error_banner.dart';
+import '../../shared/widgets/app_text_field.dart';
 import 'doctor_provider.dart';
 
 class DoctorLoginScreen extends StatefulWidget {
@@ -40,157 +45,153 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+    final primaryColor = isDark ? AppColors.darkPrimary : AppColors.primary;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Doctor Login'),
-      ),
-      body: SafeArea(
-        child: Consumer<DoctorProvider>(
-          builder: (context, provider, _) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 24),
-                    // Header icon
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.medical_services_outlined,
-                        size: 40,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Doctor Login',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Enter your phone number and PIN to continue',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 36),
-
-                    // Error banner
-                    if (provider.error != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.yourTurnBg,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.yourTurn.withAlpha(76)),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.error_outline,
-                                color: AppColors.yourTurn, size: 24),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                provider.error!,
-                                style: const TextStyle(
-                                  color: AppColors.yourTurn,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+      backgroundColor: AppColors.getBackground(context),
+      body: Column(
+        children: [
+          const GradientHeader(
+            title: 'Doctor Portal',
+            subtitle: 'Clinician check-in & OPD availability',
+            showBackButton: true,
+          ),
+          Expanded(
+            child: Consumer<DoctorProvider>(
+              builder: (context, provider, _) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Header banner
+                        Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.asset(
+                              'assets/images/banner.png',
+                              width: double.infinity,
+                              height: 120,
+                              fit: BoxFit.cover,
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-
-                    // Phone Number field
-                    TextFormField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      maxLength: 10,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone Number',
-                        hintText: 'e.g. 9876543210',
-                        prefixIcon: Icon(Icons.phone),
-                        counterText: '',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().length != 10) {
-                          return 'Please enter a valid 10-digit phone number';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // PIN field
-                    TextFormField(
-                      controller: _pinController,
-                      obscureText: _obscurePassword,
-                      keyboardType: TextInputType.number,
-                      maxLength: 6,
-                      decoration: InputDecoration(
-                        labelText: '6-Digit PIN',
-                        hintText: 'e.g. 123456',
-                        counterText: '',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
                         ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.length != 6) {
-                          return 'Please enter your 6-digit PIN';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 32),
+                        const SizedBox(height: 18),
+                        Text(
+                          'Doctor Login',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            color: isDark
+                                ? AppColors.darkTextPrimary
+                                : AppColors.textPrimary,
+                            letterSpacing: -0.3,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Enter your registered phone number & 6-digit PIN',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 28),
 
-                    // Login button
-                    ElevatedButton(
-                      onPressed: provider.isLoading ? null : _handleLogin,
-                      child: provider.isLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Colors.white,
+                        // Error banner
+                        if (provider.error != null) ...[
+                          ErrorBanner(message: provider.error!),
+                          const SizedBox(height: 20),
+                        ],
+
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: AppDecorations.glassCard(context, radius: 22),
+                          child: Column(
+                            children: [
+                              // Phone Number field
+                              AppTextField(
+                                label: 'Phone Number',
+                                hint: 'e.g. 9876543210',
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                                prefixIcon: const Icon(Icons.phone_rounded),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(10),
+                                ],
+                                validator: (value) {
+                                  if (value == null || value.trim().length != 10) {
+                                    return 'Please enter a valid 10-digit phone number';
+                                  }
+                                  return null;
+                                },
                               ),
-                            )
-                          : const Text('LOGIN'),
+                              const SizedBox(height: 18),
+
+                              // PIN field
+                              AppTextField(
+                                label: '6-Digit PIN',
+                                hint: 'e.g. 123456',
+                                controller: _pinController,
+                                obscureText: _obscurePassword,
+                                keyboardType: TextInputType.number,
+                                prefixIcon: const Icon(Icons.lock_rounded),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off_rounded
+                                        : Icons.visibility_rounded,
+                                    size: 20,
+                                    color: isDark
+                                        ? AppColors.darkTextSecondary
+                                        : AppColors.textSecondary,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(6),
+                                ],
+                                validator: (value) {
+                                  if (value == null || value.length != 6) {
+                                    return 'Please enter your 6-digit PIN';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+
+                        // Login button
+                        PrimaryButton(
+                          text: 'LOGIN',
+                          icon: Icons.login_rounded,
+                          isLoading: provider.isLoading,
+                          onPressed: _handleLogin,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

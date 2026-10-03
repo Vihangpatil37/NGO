@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/localization/locale_provider.dart';
+import '../../core/theme/app_theme.dart';
 import 'package:hospital_patient_app/l10n/app_localizations.dart';
 
 class LanguageSelectorSheet extends StatelessWidget {
   const LanguageSelectorSheet({super.key});
 
   static Future<void> show(BuildContext context) {
+    final isDark = AppColors.isDark(context);
     return showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+      elevation: 8,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) => const LanguageSelectorSheet(),
     );
@@ -19,31 +22,57 @@ class LanguageSelectorSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 44,
+                height: 5,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkBorder : const Color(0xFFCBD5E1),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   AppLocalizations.of(context)!.chooseLanguage,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF212121),
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                    letterSpacing: -0.2,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
+                Material(
+                  color: isDark ? AppColors.darkSurfaceCard : const Color(0xFFF1F5F9),
+                  shape: const CircleBorder(),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 20,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             _LanguageTile(
               title: 'ગુજરાતી',
               subtitle: 'Gujarati',
@@ -95,51 +124,74 @@ class _LanguageTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSelected = Localizations.localeOf(context).languageCode == code;
+    final isDark = AppColors.isDark(context);
+    final primaryColor = isDark ? AppColors.darkPrimary : AppColors.primary;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE3F2FD) : const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF0D47A1) : const Color(0xFFE0E0E0),
-            width: isSelected ? 2.0 : 1.0,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? const Color(0xFF0D47A1) : const Color(0xFF212121),
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF757575),
-                  ),
-                ),
-              ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? (isDark
+                    ? AppColors.darkPrimary.withAlpha(35)
+                    : AppColors.primaryLight.withAlpha(180))
+                : (isDark ? AppColors.darkSurfaceCard : const Color(0xFFF8FAFC)),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected
+                  ? primaryColor
+                  : (isDark ? AppColors.darkBorder : const Color(0xFFE2E8F0)),
+              width: isSelected ? 2.0 : 1.2,
             ),
-            if (isSelected)
-              const Icon(
-                Icons.check_circle,
-                color: Color(0xFF0D47A1),
-                size: 26,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected
+                          ? primaryColor
+                          : (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
-          ],
+              if (isSelected)
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

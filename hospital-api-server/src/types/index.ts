@@ -19,6 +19,7 @@ export interface IRegistration extends Document {
   _id: Types.ObjectId;
   patientId: Types.ObjectId | IPatient;
   registrationWindowId: string;
+  deviceId?: string;
   status: 'registered' | 'arrived' | 'in_queue' | 'in_consultation' | 'completed' | 'cancelled';
   createdAt: Date;
   updatedAt: Date;

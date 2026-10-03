@@ -37,7 +37,7 @@ export class QueueService {
   /**
    * Issue a new token for the given patient and window.
    */
-  public static async issueToken(patientId: string, windowId: string) {
+  public static async issueToken(patientId: string, windowId: string, deviceId?: string) {
     let registration = await Registration.findOne({
       patientId,
       registrationWindowId: windowId
@@ -47,6 +47,7 @@ export class QueueService {
       registration = new Registration({
         patientId,
         registrationWindowId: windowId,
+        deviceId,
         status: 'arrived'
       });
       await registration.save();

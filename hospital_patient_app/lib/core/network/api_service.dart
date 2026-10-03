@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../constants/app_constants.dart';
 import '../storage/session_storage.dart';
@@ -37,6 +40,22 @@ class ApiService {
     );
   }
 
+  Future<String?> _getDeviceId() async {
+    try {
+      final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      if (Platform.isAndroid) {
+        final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+        return androidInfo.id;
+      } else if (Platform.isIOS) {
+        final IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+        return iosInfo.identifierForVendor;
+      }
+    } catch (e) {
+      debugPrint('Failed to get device ID: $e');
+    }
+    return null;
+  }
+
   /// Register a new case and receive a token number immediately
   Future<Map<String, dynamic>> registerNewCase({
     required String name,
@@ -45,6 +64,8 @@ class ApiService {
     int? age,
   }) async {
     try {
+      final deviceId = await _getDeviceId();
+      debugPrint('==== DEVICE ID ==== : $deviceId');
       final response = await _dio.post(
         '/cases/new',
         data: {
@@ -52,6 +73,7 @@ class ApiService {
           'villageName': villageName,
           'phoneNumber': phoneNumber,
           if (age != null) 'age': age,
+          'deviceId': deviceId, // Force sending it even if null, so backend receives null
         },
       );
       return response.data;
@@ -85,11 +107,14 @@ class ApiService {
     required String caseNumber,
   }) async {
     try {
+      final deviceId = await _getDeviceId();
+      debugPrint('==== OLD CASE DEVICE ID ==== : $deviceId');
       final response = await _dio.post(
         '/queue/register',
         data: {
           'phoneNumber': phoneNumber,
           'caseNumber': caseNumber,
+          'deviceId': deviceId,
         },
       );
       return response.data;

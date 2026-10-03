@@ -25,7 +25,10 @@ export default function QueueBoard() {
     socket.emit('join:admin');
 
     const handleNewToken = (data: any) => {
-        setQueue(prev => [...prev, data.token].sort((a,b) => a.tokenNumber - b.tokenNumber));
+        setQueue(prev => {
+            const newToken = { ...data.token, registrationId: data.registration };
+            return [...prev, newToken].sort((a,b) => a.tokenNumber - b.tokenNumber);
+        });
     };
 
     const handleUpdated = (data: { tokenId: string, status: string }) => {
@@ -92,7 +95,9 @@ export default function QueueBoard() {
                   <div key={token._id} className={`bg-[var(--surface)] p-4 rounded-lg shadow-sm border border-[var(--border)] ${getBorderColor(token.status)}`}>
                       <div className="flex justify-between items-start">
                           <div className="flex items-center gap-4">
-                              <span className="text-3xl font-bold font-mono min-w-[3rem]">{token.tokenNumber.toString().padStart(3,'0')}</span>
+                               <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[var(--surface-sunken)] border border-[var(--border)]">
+                                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ink-muted)]"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                               </div>
                                <div>
                                    <p className="font-semibold text-lg">{token.registrationId?.patientId?.caseType === 'old' ? `Old Case ${token.registrationId?.patientId?.caseNumber}` : (token.registrationId?.patientId?.name || 'New Registration')}</p>
                                    <p className="text-sm text-[var(--ink-muted)] mt-0.5">

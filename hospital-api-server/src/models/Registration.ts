@@ -4,6 +4,7 @@ import { IRegistration } from '../types';
 const registrationSchema = new Schema<IRegistration>({
   patientId: { type: Schema.Types.ObjectId, ref: 'Patient', required: true },
   registrationWindowId: { type: String, required: true, index: true },
+  deviceId: { type: String, index: true },
   status: { type: String, enum: ['registered', 'arrived', 'in_queue', 'in_consultation', 'completed', 'cancelled'], default: 'registered' }
 }, { timestamps: true });
 

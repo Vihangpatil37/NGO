@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_theme.dart';
 
 class InfoCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
+  final double borderRadius;
+  final Color? borderColor;
 
   const InfoCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(20),
+    this.borderRadius = 20,
+    this.borderColor,
   });
 
   @override
@@ -15,17 +20,10 @@ class InfoCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: padding,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEEEEEE)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+      decoration: AppDecorations.glassCard(
+        context,
+        radius: borderRadius,
+        borderColor: borderColor,
       ),
       child: child,
     );

@@ -6,7 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_text_field.dart';
 import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/error_banner.dart';
-import '../../shared/widgets/info_card.dart';
+import '../../shared/widgets/gradient_header.dart';
 import '../../core/navigation/app_router.dart';
 import 'package:hospital_patient_app/l10n/app_localizations.dart';
 
@@ -50,7 +50,6 @@ class _OldCaseScreenState extends State<OldCaseScreen> {
       final phoneNumber = _phoneController.text.trim();
       final caseNumber = _caseIdController.text.trim().toUpperCase();
 
-      // Register old case for today's queue
       final response = await _apiService.registerOldCase(
         phoneNumber: phoneNumber,
         caseNumber: caseNumber,
@@ -108,15 +107,44 @@ class _OldCaseScreenState extends State<OldCaseScreen> {
     }
   }
 
-  void _showDuplicateTokenDialog(BuildContext context, String tokenId, String message) {
+  void _showDuplicateTokenDialog(
+      BuildContext context, String tokenId, String message) {
+    final isDark = AppColors.isDark(context);
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: const Text('Notice'),
-        content: Text(message),
+        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.info_outline_rounded,
+                color: AppColors.primary, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              'Notice',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: TextStyle(
+            fontSize: 15,
+            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+          ),
+        ),
         actions: [
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(140, 48),
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
             onPressed: () {
               Navigator.pop(ctx);
               Navigator.of(context).pushReplacementNamed(
@@ -133,149 +161,225 @@ class _OldCaseScreenState extends State<OldCaseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.oldCase),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.welcome, (route) => false);
-            } else {
-              Navigator.of(context).pushReplacementNamed(AppRouter.welcome);
-            }
-          },
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: _caseNotFound ? _buildCaseNotFoundView() : _buildFormView(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFormView() {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: AppColors.getBackground(context),
+      body: Column(
         children: [
-          Text(
-            AppLocalizations.of(context)!.enterDetails,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            AppLocalizations.of(context)!.oldCaseFormSubtitle,
-            style: const TextStyle(
-              fontSize: 15,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          if (_errorMessage != null) ...[
-            ErrorBanner(message: _errorMessage!),
-            const SizedBox(height: 20),
-          ],
-
-          // 1. Mobile number
-          AppTextField(
-            label: AppLocalizations.of(context)!.mobileNumber,
-            hint: AppLocalizations.of(context)!.mobileNumberHint,
-            controller: _phoneController,
-            keyboardType: TextInputType.phone,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(10),
-            ],
-            validator: (val) {
-              if (val == null || val.trim().length != 10) {
-                return AppLocalizations.of(context)!.validationMobile;
+          GradientHeader(
+            title: l10n.oldCase,
+            subtitle: l10n.oldCaseSubtitle,
+            onBack: () {
+              if (Navigator.canPop(context)) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                    AppRouter.welcome, (route) => false);
+              } else {
+                Navigator.of(context).pushReplacementNamed(AppRouter.welcome);
               }
-              return null;
             },
           ),
-          const SizedBox(height: 20),
-
-          // 2. Case ID
-          AppTextField(
-            label: AppLocalizations.of(context)!.caseId,
-            hint: AppLocalizations.of(context)!.caseIdHint,
-            helperText: '',
-            controller: _caseIdController,
-            textCapitalization: TextCapitalization.characters,
-            validator: (val) {
-              if (val == null || val.trim().isEmpty) {
-                return AppLocalizations.of(context)!.validationCaseId;
-              }
-              return null;
-            },
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+              child: _caseNotFound
+                  ? _buildCaseNotFoundView()
+                  : _buildFormView(),
+            ),
           ),
-          const SizedBox(height: 36),
-
-          PrimaryButton(
-            text: AppLocalizations.of(context)!.continueAndGetToken,
-            icon: Icons.confirmation_number_outlined,
-            isLoading: _isLoading,
-            onPressed: _submitOldCase,
-          ),
-          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  // Exact Error Screen specification from Section 7
-  Widget _buildCaseNotFoundView() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 24),
+  Widget _buildFormView() {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = AppColors.isDark(context);
+
+    return Form(
+      key: _formKey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.search_off_rounded,
-            size: 72,
-            color: AppColors.yourTurn,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            AppLocalizations.of(context)!.caseNotFound,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          InfoCard(
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: AppDecorations.glassCard(context, radius: 22),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  AppLocalizations.of(context)!.caseNotFoundSub,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: (isDark
+                                ? AppColors.darkAccent
+                                : AppColors.accent)
+                            .withAlpha(25),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.history_rounded,
+                        color: isDark
+                            ? AppColors.darkAccent
+                            : AppColors.accent,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.enterDetails,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? AppColors.darkTextPrimary
+                                  : AppColors.textPrimary,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            l10n.oldCaseFormSubtitle,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark
+                                  ? AppColors.darkTextSecondary
+                                  : AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                if (_errorMessage != null) ...[
+                  ErrorBanner(message: _errorMessage!),
+                  const SizedBox(height: 18),
+                ],
+
+                // 1. Mobile number
+                AppTextField(
+                  label: l10n.mobileNumber,
+                  hint: l10n.mobileNumberHint,
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  prefixIcon: const Icon(Icons.phone_android_rounded),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  validator: (val) {
+                    if (val == null || val.trim().length != 10) {
+                      return l10n.validationMobile;
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 18),
+
+                // 2. Case ID
+                AppTextField(
+                  label: l10n.caseId,
+                  hint: l10n.caseIdHint,
+                  controller: _caseIdController,
+                  textCapitalization: TextCapitalization.characters,
+                  prefixIcon: const Icon(Icons.tag_rounded),
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) {
+                      return l10n.validationCaseId;
+                    }
+                    return null;
+                  },
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 24),
+
+          PrimaryButton(
+            text: l10n.continueAndGetToken,
+            icon: Icons.confirmation_number_outlined,
+            isLoading: _isLoading,
+            onPressed: _submitOldCase,
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCaseNotFoundView() {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = AppColors.isDark(context);
+    final errorColor =
+        isDark ? AppColors.darkYourTurn : const Color(0xFFC62828);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.5, end: 1.0),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.elasticOut,
+            builder: (_, scale, child) =>
+                Transform.scale(scale: scale, child: child),
+            child: Container(
+              width: 90,
+              height: 90,
+              decoration: BoxDecoration(
+                color: errorColor.withAlpha(isDark ? 40 : 25),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.search_off_rounded,
+                size: 48,
+                color: errorColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            l10n.caseNotFound,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+              letterSpacing: -0.3,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: AppDecorations.glassCard(context, radius: 18),
+            child: Text(
+              l10n.caseNotFoundSub,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
           const SizedBox(height: 28),
           PrimaryButton(
-            text: AppLocalizations.of(context)!.tryAgain,
-            icon: Icons.refresh,
+            text: l10n.tryAgain,
+            icon: Icons.refresh_rounded,
             onPressed: () {
               setState(() {
                 _caseNotFound = false;
@@ -283,25 +387,39 @@ class _OldCaseScreenState extends State<OldCaseScreen> {
               });
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           OutlinedButton(
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(56),
-              side: const BorderSide(color: AppColors.primary, width: 2),
+              side: BorderSide(
+                color: isDark ? AppColors.darkPrimary : AppColors.primary,
+                width: 1.8,
+              ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
               ),
             ),
             onPressed: () {
               Navigator.pushNamed(context, AppRouter.help);
             },
-            child: Text(
-              AppLocalizations.of(context)!.contactHospital,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.support_agent_rounded,
+                  color: isDark ? AppColors.darkPrimary : AppColors.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.contactHospital,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.darkPrimary : AppColors.primary,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

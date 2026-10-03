@@ -66,7 +66,10 @@ export default function AdminDashboard() {
   return (
     <div>
         <header className="bg-[var(--surface)] p-4 border-b border-[var(--border)] flex flex-col md:flex-row gap-4 justify-between items-center">
-           <h1 className="font-bold whitespace-nowrap">Hospital Admin</h1>
+           <div className="flex items-center gap-3">
+             <img src="/logo.png" alt="Arogya Mandir Logo" className="h-10 w-auto object-contain" />
+             <h1 className="font-bold whitespace-nowrap">Hospital Admin</h1>
+           </div>
            
            <form onSubmit={handleSearch} className="flex-1 max-w-md flex relative">
              <input 

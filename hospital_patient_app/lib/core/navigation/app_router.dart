@@ -21,44 +21,70 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case welcome:
-        return MaterialPageRoute(
-          builder: (_) => const WelcomeScreen(),
-        );
+        return _buildRoute(const WelcomeScreen(), settings);
       case newCase:
-        return MaterialPageRoute(builder: (_) => const NewCaseScreen());
+        return _buildRoute(const NewCaseScreen(), settings);
       case oldCase:
-        return MaterialPageRoute(builder: (_) => const OldCaseScreen());
+        return _buildRoute(const OldCaseScreen(), settings);
       case tokenConfirmed:
         final args = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(
-          builder: (_) => TokenConfirmedScreen(
+        return _buildRoute(
+          TokenConfirmedScreen(
             tokenNumber: args?['tokenNumber'] ?? 0,
             caseNumber: args?['caseNumber'] ?? '',
             queuePosition: args?['queuePosition'] ?? 0,
             tokenId: args?['tokenId'] ?? '',
             patientName: args?['patientName'] ?? '',
           ),
+          settings,
         );
       case myToken:
         final args = settings.arguments as Map<String, dynamic>?;
         final tokenId = args?['tokenId'] as String?;
-        return MaterialPageRoute(
-          builder: (_) => MyTokenScreen(
-            tokenId: tokenId ?? '', // Should always be provided
+        return _buildRoute(
+          MyTokenScreen(
+            tokenId: tokenId ?? '',
           ),
+          settings,
         );
       case help:
-        return MaterialPageRoute(builder: (_) => const HelpScreen());
+        return _buildRoute(const HelpScreen(), settings);
       case doctorLogin:
-        return MaterialPageRoute(builder: (_) => const DoctorLoginScreen());
+        return _buildRoute(const DoctorLoginScreen(), settings);
       case doctorAvailability:
-        return MaterialPageRoute(builder: (_) => const DoctorAvailabilityScreen());
+        return _buildRoute(const DoctorAvailabilityScreen(), settings);
       default:
-        return MaterialPageRoute(
-          builder: (_) => Scaffold(
+        return _buildRoute(
+          Scaffold(
             body: Center(child: Text('No route defined for ${settings.name}')),
           ),
+          settings,
         );
     }
+  }
+
+  static Route<dynamic> _buildRoute(Widget page, RouteSettings settings) {
+    return PageRouteBuilder(
+      settings: settings,
+      transitionDuration: const Duration(milliseconds: 320),
+      reverseTransitionDuration: const Duration(milliseconds: 260),
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.04, 0),
+              end: Offset.zero,
+            ).animate(curved),
+            child: child,
+          ),
+        );
+      },
+    );
   }
 }

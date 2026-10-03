@@ -4,7 +4,7 @@ import '../../core/navigation/app_router.dart';
 import '../../shared/widgets/primary_button.dart';
 import 'package:hospital_patient_app/l10n/app_localizations.dart';
 
-class TokenConfirmedScreen extends StatelessWidget {
+class TokenConfirmedScreen extends StatefulWidget {
   final int tokenNumber;
   final String caseNumber;
   final int queuePosition;
@@ -21,128 +21,263 @@ class TokenConfirmedScreen extends StatelessWidget {
   });
 
   @override
+  State<TokenConfirmedScreen> createState() => _TokenConfirmedScreenState();
+}
+
+class _TokenConfirmedScreenState extends State<TokenConfirmedScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
+      ),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = AppColors.isDark(context);
+    final waitingColor =
+        isDark ? AppColors.darkWaiting : AppColors.waiting;
+    final primaryColor =
+        isDark ? AppColors.darkPrimary : AppColors.primary;
+
     return PopScope(
-      canPop: false, // Prevent going back to form
+      canPop: false,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.getBackground(context),
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Spacer(),
+                const Spacer(flex: 1),
 
-                // Green success badge
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: const BoxDecoration(
-                    color: AppColors.waitingBg,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check_circle_rounded,
-                    color: AppColors.waiting,
-                    size: 48,
+                // Animated celebration checkmark
+                ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: Container(
+                    width: 88,
+                    height: 88,
+                    decoration: BoxDecoration(
+                      color: waitingColor.withAlpha(isDark ? 45 : 30),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: waitingColor.withAlpha(isDark ? 60 : 40),
+                          blurRadius: 24,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: waitingColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  AppLocalizations.of(context)!.tokenConfirmed,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  AppLocalizations.of(context)!.caseIdDisplay(caseNumber, patientName),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 36),
+                const SizedBox(height: 20),
 
-                // Large token display container
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppColors.border, width: 2.0),
-                  ),
+                FadeTransition(
+                  opacity: _fadeAnimation,
                   child: Column(
                     children: [
                       Text(
-                        AppLocalizations.of(context)!.yourTokenNumber.toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        tokenNumber.toString().padLeft(2, '0'),
-                        style: const TextStyle(
-                          fontSize: 72,
+                        l10n.tokenConfirmed,
+                        style: TextStyle(
+                          fontSize: 28,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
-                          letterSpacing: -2.0,
+                          color: isDark
+                              ? AppColors.darkTextPrimary
+                              : AppColors.textPrimary,
+                          letterSpacing: -0.5,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
-                          borderRadius: BorderRadius.circular(20),
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.caseIdDisplay(widget.caseNumber, widget.patientName),
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
                         ),
-                        child: Text(
-                          '$queuePosition ${AppLocalizations.of(context)!.peopleBeforeYou}',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  AppLocalizations.of(context)!.pleaseWaitForTurn,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textSecondary,
+                const SizedBox(height: 32),
+
+                // Central Token Card with count-up animation
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 32, horizontal: 24),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurfaceCard : Colors.white,
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(
+                        color: primaryColor.withAlpha(isDark ? 100 : 70),
+                        width: 2.0,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: primaryColor.withAlpha(isDark ? 40 : 25),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withAlpha(isDark ? 30 : 20),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'REGISTRATION SUCCESSFUL',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2,
+                              color: primaryColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        
+                        Icon(
+                          Icons.check_circle_rounded,
+                          size: 80,
+                          color: primaryColor,
+                        ),
+                        const SizedBox(height: 18),
+
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF1E293B)
+                                : AppColors.accentLight,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: (isDark
+                                      ? AppColors.darkAccent
+                                      : AppColors.accent)
+                                  .withAlpha(60),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.people_alt_outlined,
+                                size: 16,
+                                color: isDark
+                                    ? AppColors.darkAccent
+                                    : AppColors.accent,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${widget.queuePosition} ${l10n.peopleBeforeYou}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? AppColors.darkAccent
+                                      : AppColors.accent,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Text(
+                    l10n.pleaseWaitForTurn,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
 
-                const Spacer(),
+                const Spacer(flex: 2),
 
                 // Dominant CTA
-                PrimaryButton(
-                  text: AppLocalizations.of(context)!.viewMyToken,
-                  icon: Icons.confirmation_number,
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRouter.myToken,
-                      arguments: {'tokenId': tokenId},
-                    );
-                  },
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: PrimaryButton(
+                    text: 'View Queue Status',
+                    icon: Icons.people_alt_rounded,
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(
+                        context,
+                        AppRouter.myToken,
+                        arguments: {'tokenId': widget.tokenId},
+                      );
+                    },
+                  ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
               ],
             ),
           ),

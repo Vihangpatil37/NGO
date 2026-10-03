@@ -12,7 +12,7 @@ export const createApp = (): Express => {
   // Middleware
   app.use(
     cors({
-      origin: [env.CORS_ORIGIN_PATIENT, env.CORS_ORIGIN_ADMIN, '*'],
+      origin: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
       credentials: true
     })
